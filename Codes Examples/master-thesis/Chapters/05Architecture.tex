@@ -1,0 +1,83 @@
+\documentclass[../Main.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Overall architecture}
+\subsubsection{Diagram}
+
+\subsection{Tree trunk recognition - Neural Network} \label{network}
+    In this chapter we describe the neural network used for style transfer. 
+    First we describe it's architecture and specific layers. Then we detail
+    pruning procedure used to obtain the final model.
+    
+    \subsubsection{Overall network architecture} 
+    
+    \begin{figure}[ht!]
+        \includegraphics[scale=0.25]{overall_network.png}
+        \caption{Overview of the network architecture \cite{Li2018}}
+        \label{fig:overall_network}
+    \end{figure}
+    
+    \begin{table}
+    \begin{center}
+        \begin{tabular}{|c|c|}
+        \hline
+         Li et al. \cite{Li2018} & Ours \\
+        \hline
+          \multicolumn{2}{|c|}{Pointwise Conv(3, 3)} \\
+          \hline
+          CReLU(3, 64)  & CReLU(3, 16)  \\
+          \hline
+          CReLU(64, 64) & CReLU(16, 16)  \\
+          \hline
+          \multicolumn{2}{|c|}{Max Pool $\times2$}      \\
+          \hline
+          CReLU(64, 128)  & CReLU(16, 32) \\
+          \hline
+          CReLU(128, 128)  & CReLU(32, 32)\\
+          \hline
+          \multicolumn{2}{|c|}{Max Pool $\times2$}    \\
+          \hline
+          CReLU(128, 256) & CReLU(32, 64)\\
+          \hline
+          CReLU(256, 128) & CReLU(64, 32)\\
+          \hline
+          \multicolumn{2}{|c|}{Upsample Nearest $\times2$}\\
+          \hline
+          CReLU(128, 128) & CReLU(32, 32)\\
+          \hline
+          CReLU(128, 64) & CReLU(32, 16)\\
+          \hline
+          \multicolumn{2}{|c|}{Upsample Nearest $\times2$}\\
+          \hline
+          CReLU(64, 64) & CReLU(16, 16) \\
+          \hline
+          CReLU(64,3) & CReLU(16, 3)\\
+          \hline
+        \end{tabular}
+            \end{center}
+        \caption{Encoder-decoder architecture before and after filter pruning.
+        The first Conv layer is pointwise convolution with $1\times1$ kernel, 
+        unitary stride, without padding. It has $3$ input and $3$ output channels.
+        \textit{CReLU(a,b)} is Conv layer with \textit{a} input channels and 
+        \textit{b} output channels followed by ReLU activation. All of 
+        \textit{CReLU}s have $3\times3$ kernels, unitary stride and and single pixel
+        of padding on each of $4$ sides. Downsampling and upsampling
+        is done with $2\times2$ kernels and stride $2$.
+        }
+        \label{table:vgg}
+    \end{table}
+    
+    \subsubsection{The model}
+    
+\subsection{Leaf recognition - neural network}
+    \subsubsection{Overall network architecture}
+    \subsubsection{The model}
+
+\subsection{PlantNet}
+
+\subsection{Comparision}
+    
+\newpage    
+\biblio % Needed for referencing to working when compiling individual subfiles - Do not remove
+\end{document}
