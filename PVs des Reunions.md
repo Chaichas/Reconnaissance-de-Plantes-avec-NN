@@ -6,4 +6,12 @@
 - 2 jeux de donnees: il faut choisir ceux des professionels, le plus sur --> 90% training et 10% test
 - coder les filtres, en c pour optimiser et vectoriser
 - coder le calcul d erreurs, back propagation dans l entrainement/ test --> mise a jour des points
-- 
+- Premieres etapes: classes des plantes, constituer les bases de donnees, excel avec des liens ou a partir de fichier
+- algo pour contours des photos --> filtres adequats
+- les algos sur les feuilles/ fleurs: essayer tout d abord avec les feuilles
+- a faire: fonction d erreur et les filtres (fonctions de traitement)
+- il y a d autres fonctions d activation plus mieux que le sigmoide
+- essayer les layers, les combiner, avoir tous les resultats dans le rapport (bonnes et mals), approches qui ont fonctione
+- Documentation des precisions des filtres, des fonctions d activation, nombres des etapes
+- premiere etape: jouer avec les images
+- les couleurs changent selon le temps
