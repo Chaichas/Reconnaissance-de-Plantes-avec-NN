@@ -1,0 +1,44 @@
+                         ---------------------
+                          Description Dataset  
+                         ---------------------
+--------
+Context:
+--------
+
+This dataset was created to test new models on smaller datasets as well as any new functions which are learnt by Kaggle users.
+
+--------
+Content:
+--------
+
+This dataset contains 5 classes of flowers namely,
+
+1-Daisy
+2-Dandelion
+3-Rose
+4-Sunflower
+5-Tulip
+
+3 CSV files are added to the dataset, which contains the filenames in the training, validation and testing datasets. The training dataset comprises of 70% of the images present in a class, validation 20% and testing 10%. 
+
+-----------------
+Acknowledgements:
+-----------------
+
+This dataset was taken from Flowers Recognition by Alexander Mamaev.
+
+--------
+Source :
+--------
+
+https://www.kaggle.com
+
+--------
+License:
+--------
+
+CC0: Public Domain
+
+
+
+
