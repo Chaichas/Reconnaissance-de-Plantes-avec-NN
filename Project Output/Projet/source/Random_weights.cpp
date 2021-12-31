@@ -17,11 +17,11 @@ void Random_weights(double nb_filters, double nb_weights, std::vector<std::vecto
     
       double number = (distribution(generator)); //random number from a random generator engine, Ref2
       
-      one_filter.push_back(number); // Filling of 1 filter
+      one_filter.push_back(number); // Filling of 1 filter with random values
      
     }
     
-    nb_tot.push_back(temp); //Filling of all filters
+    nb_tot.push_back(temp); //Filling of all filters with random values
   }
   
 }
