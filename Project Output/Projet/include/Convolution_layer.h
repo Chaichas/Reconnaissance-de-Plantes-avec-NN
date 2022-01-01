@@ -26,6 +26,10 @@ private
 	std::vector<std::vector<double>> filter_matrix; //Filter matrix filled with values
 	
 	void convolution_process(const std::vector<double>& pixel, int idx); //multiplication and summation pixel value * filter value
+	
+	//Backpropagation
+	std::vector<double> CacheMat; //Cache of inputs
+	void cache_BK(const std::vector<double>& vect);
 
 }
 

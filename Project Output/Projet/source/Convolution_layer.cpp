@@ -70,6 +70,24 @@ void Convolution_layer::convolution_process(const std::vector<double>& pixel, in
 }
 
 
+//Here, we will update the weights using Backpropagation
+
+void Convolution_layer::cache_BK(const std::vector<double>& vect){
+  
+	CacheMat.clear(); //Clear the old CacheMat
+	CacheMat.resize(input.size()); //Resize CacheMat
+
+	//Copy: output.assign(input.begin(), input.end());
+	CacheMat.assign(input.begin(), input.end()); //output = CacheMat
+}
+
+
+
+
+
+
+
+
 Convolution_layer::~Convolution_layer(){} //Destructor
 
 
