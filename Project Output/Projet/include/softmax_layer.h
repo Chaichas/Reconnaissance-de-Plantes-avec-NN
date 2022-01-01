@@ -6,7 +6,7 @@
 
 //Macros pour la couche softmax
 #define ND 10
-#define PROFD 8
+#define DEPTH 8
 
 
 class Softmax {
@@ -20,18 +20,14 @@ public:
 	
 private:
 
-	void Flatten_making(const std::vector<std::vector<double>>& img_input, int d);
 
-	int mWidth; 
+	int mLength; 
 
-	std::vector<std::vector<double>> m_weight;    // vecteur de poids 
+	std::vector<std::vector<double>> mWeight;    // vecteur de poids 
 
-
-	std::vector<double> m_biases;        // vecteur de biais
 
 	
-	
-	
+
 
 };
 
