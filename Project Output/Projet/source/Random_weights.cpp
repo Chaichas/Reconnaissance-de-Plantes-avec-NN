@@ -1,6 +1,6 @@
 #include "Random_weights.h"
 
-void Random_weights(double nb_filters, double nb_weights, std::vector<std::vector<double>>& nb_tot){
+void Random_weights(double nb_filters, double nb_weights, std::vector<std::vector<double>>& filter_matrix){
 	
 	//construct a random generator engine from a time-based seed, Ref1
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); //time; system real time
@@ -21,7 +21,7 @@ void Random_weights(double nb_filters, double nb_weights, std::vector<std::vecto
      
     }
     
-    nb_tot.push_back(temp); //Filling of all filters with random values
+    filter_matrix.push_back(one_filter); //Filling of all filters with random values
   }
   
 }

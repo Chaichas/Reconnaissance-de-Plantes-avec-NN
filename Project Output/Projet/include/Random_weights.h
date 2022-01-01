@@ -7,6 +7,6 @@
 #include <cmath> //math
 #include <random> //random
 
-void Random_weights(double nb_filters, double nb_weights, std::vector<std::vector<double>>& nb_tot);
+void Random_weights(double nb_filters, double nb_weights, std::vector<std::vector<double>>& filter_matrix);
 
 #endif
