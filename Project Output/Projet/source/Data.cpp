@@ -7,8 +7,11 @@ Data::~Data(){}
 
 void Data::loadImage(const std::string& str_Path, int& Hauteur, int& largeur)
 {
+//Recuperation de l'image
+
   m_ImageVector.clear();
  
+  //Creation et lecture de l'image
   cv::Mat image = cv::imread( str_Path, CV_LOAD_IMAGE_COLOR);
   
   if(!image.data)
@@ -16,12 +19,13 @@ void Data::loadImage(const std::string& str_Path, int& Hauteur, int& largeur)
         std::cout << "Error: the image wasn't correctly loaded." << std::endl;
         return -1;
   }
-
+  
+  //Recuperation des dimension de l'image
   hauteur = image.rows;
   largeur = image.cols;
-
+  
+  //Generation de vecteur RVB
   this->create_canal(image);
-
 }
 
 void Data::create_canal(cv::Mat image)
@@ -36,6 +40,8 @@ void Data::create_canal(cv::Mat image)
         double V = ((double)image.at<cv::Vec3b>(i,j)[1]);
         double B = ((double)image.<cv::Vec3b>(i,j)[0]);
         double somme = (R+V+B);
+        
+        //normalisation des valeurs de pixels dans la plage [-0.5, 0.5] pour ne pas ralentir le processus d'apprentissage
         somme = (somme/765)-0.5;
         m_ImageVector.push_back(somme);
         j++;
@@ -44,4 +50,12 @@ void Data::create_canal(cv::Mat image)
   }
 }
 
+const std::vector<double>& Image::get_fusion_canal() const
+{
+  return m_ImageVector;
+}
 
+/*
+     Reference : - https://machinelearningmastery.com/how-to-manually-scale-image-pixel-data-for-deep-learning/
+                 - https://sodocumentation.net/opencv/topic/1957/pixel-access
+*/

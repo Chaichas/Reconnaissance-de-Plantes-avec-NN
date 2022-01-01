@@ -13,5 +13,6 @@ private:
 public:
   Data();
   ~Data();
+  const std::vector<double>& get_fusion_canal() const;
   void loadImage(const std::string& My_path, int& hauteur, int& largeur);
 };
