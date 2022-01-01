@@ -11,6 +11,16 @@ Softmax::~Softmax()
 {
 
 }
+void Softmax::Flatten_making(const std::vector<std::vector<double>>& img_input, int d)
+{
+
+   for (int i = 0; i<d ; i++){
+
+           mFlatten.insert(mFlatten.end(), img_input[i].begin(), img_input[i].end());
+
+   }
+
+}
 
 std::vector<double> Softmax::Softmax_start(const std::vector<std::vector<double>>& img_input, int img_height, int img_width)
 {
@@ -26,8 +36,6 @@ std::vector<double> Softmax::Softmax_start(const std::vector<std::vector<double>
         //Distribution de nombres aléatoires qui produit des valeurs à virgule flottante selon une distribution normale
         Random_weights(mLength, ND, mWeights);
         
-
-    
         size_t  i = 0 , j = 0;      
         while(i< mLength){
              while(i< mLength){
@@ -39,4 +47,49 @@ std::vector<double> Softmax::Softmax_start(const std::vector<std::vector<double>
        
         init = false;
     }
+
+    mFlatten.clear();//Effacer le dernier aplatissement de l'entrée
+    mTotal.clear();//Effacer la derniere prédiction 
+
+
+    Flatten_making(input_img, DEPTH);
+
+    //Multiplier l'entrée aplatie et mWeights
+    for (int i = 0; i < ND; i++) {
+        double s = 0;
+        // Boucle pour multiplier  mWeights[j] pour chaque  digit[i] avec chaque mFlatten [j]
+        for (int j = 0; j < m_length; j++) {
+            s += (mFlatten[j] * mWeights[j][i]);
+        }
+        //Somme de biais
+        s += mBiases[i];
+        mTotal.push_back(s);
+    }
+    std::vector<double> vect_exponentiel;
+    std::vector<double> vect_predictions;
+
+    double exp_s = 0.0;
+    double t = 0.0;
+
+    for (int i = 0; i < ND; i++)
+    {
+        t = exp(m_total[i]);
+        vect_exponentiel.push_back(t);
+        exp_s += (t);
+    }
+
+    for (int i = 0; i < ND; i++)
+    {
+        t = ((double)vect_exponentiel[i] / (double)exp_s);
+        vect_predictions.push_back(t);
+    }
+
+   
+
+    return predictions;
+}
+
 }    
+
+
+
