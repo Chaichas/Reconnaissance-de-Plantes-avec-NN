@@ -19,7 +19,7 @@ public:
 	//Get Convolution output Matrix
 	const std::vector<std::vector<double>>& getConvMat() const {return ConvMat;} 
 	
-private
+private:
 
 	std::vector<std::vector<double>> ConvMat; //convolution matrix filled with values
 	
@@ -27,10 +27,15 @@ private
 	
 	void convolution_process(const std::vector<double>& pixel, int idx); //multiplication and summation pixel value * filter value
 	
-	//Backpropagation
+	//Backpropagation: Caching inputs
 	std::vector<double> CacheMat; //Cache of inputs
 	void cache_BK(const std::vector<double>& vect);
 
-}
+public:
+
+	//Case of Concolution layer propagation
+	void BackPropagation(std::vector<std::vector<double>> dloss_dlayer_output, double LearningRate);
+
+};
 
 #endif
