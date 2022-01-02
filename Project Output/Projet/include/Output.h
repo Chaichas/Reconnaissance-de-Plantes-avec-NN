@@ -24,8 +24,8 @@ public:
   output(std::string file_train, std::string file_test);
   ~output();
 
-  void Training_data(int trainEpoch = 1, double alpha = 0.005);
-
+  void Training_data(int train_epoch = 400, double alpha = 0.005);
+  void Testing_data();
 };
 
 
