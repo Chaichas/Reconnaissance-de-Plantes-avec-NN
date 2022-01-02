@@ -19,6 +19,7 @@ public:
 	
 	const std::vector<std::vector<double>>& getPoolingMatrix() {return Pooling_Matrix;} //Return the output pooling 2D matrix
 	
+	std::vector<std::vector<double>> BackPropagation(std::vector<std::vector<double>> dloss_dlayer_output); //Backpropagation
 	
 private:
 
@@ -27,9 +28,6 @@ private:
 	
 	void cache_BK(const std::vector<double>& vect); //cache
 	void Pooling_process(const std::vector<double>& pixel, int idx); //Pooling process
-
-
-
 
 };
 

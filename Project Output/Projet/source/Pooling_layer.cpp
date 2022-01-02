@@ -74,8 +74,17 @@ void Pooling_layer::Pooling_process(const std::vector<double>& pixel, int idx){
 	
 	Pooling_Matrix.push_back(vec); //The output pooling matrix
 }
+
+
+
+
+//In this backpropagation algorithm, we consider the partial derivative of the loss gradient: dloss_dlayer_output ==> Backpropagation from output -> pooling layer -> convolution layer
+
+std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std::vector<double>> dloss_dlayer_output){ //Backpropagation algorithm for Pooling layer
+
+	//std::vector<std::vector<double>> represents a 2D matrix
+	std::vector<std::vector<double>> dloss_dx; //x represents the inputs
 		
-		
-		
+}	
 
 Pooling_layer::~Pooling_layer(){} //Destructor
