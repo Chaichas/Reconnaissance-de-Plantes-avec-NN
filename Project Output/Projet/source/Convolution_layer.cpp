@@ -14,6 +14,23 @@
 
 Convolution_layer::Convolution_layer(){} //constructor
 
+
+
+/*Here, we will update the weights of the filters using the Backpropagation
+
+cache_BK for implementing the backward phase, crucial for caching:
+(1) the input from convolution layer "before flattening" it, 21) the input "after flattening" and (3) the values input of the "softmax activation function" */
+
+void Convolution_layer::cache_BK(const std::vector<double>& vect){ //caching
+  
+	CacheMat.clear(); //Clear the old CacheMat
+	CacheMat.resize(vect.size()); //Resize CacheMat
+
+	//Copy: output.assign(input.begin(), input.end());
+	CacheMat.assign(vect.begin(), vect.end()); //output = CacheMat
+}
+
+
 //in convolution we use the whole volume of the input matrix n*n*channels(RGB, 3)
 void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pixel, int inputImage_height, int inputImage_width){
 
@@ -50,6 +67,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 	cache_BK(vec_pixel); //caching the last input
 }
 
+
 //Convolution Process
 void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx){
 	std::vector<double> vec;
@@ -74,22 +92,6 @@ void Convolution_layer::convolution_process(const std::vector<double>& pixel, in
 	ConvMat.push_back(vec); //storing vec value in ConvMat
 }
 
-
-
-
-/*Here, we will update the weights of the filters using the Backpropagation
-
-cache_BK for implementing the backward phase, crucial for caching:
-(1) the input from convolution layer "before flattening" it, 21) the input "after flattening" and (3) the values input of the "softmax activation function" */
-
-void Convolution_layer::cache_BK(const std::vector<double>& vect){ //caching
-  
-	CacheMat.clear(); //Clear the old CacheMat
-	CacheMat.resize(vect.size()); //Resize CacheMat
-
-	//Copy: output.assign(input.begin(), input.end());
-	CacheMat.assign(vect.begin(), vect.end()); //output = CacheMat
-}
 
 
 //In this backpropagation algorithm, we consider the partial derivative of the loss gradient: dloss_dlayer_output ==> Backpropagation from output -> pooling layer -> convolution layer
