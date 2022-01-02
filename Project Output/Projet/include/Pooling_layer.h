@@ -14,6 +14,20 @@ public:
 	
 	void Pooling_parameters(const std::vector<double>& vec_convolution, int input_height, int input_width);
 	
+	int getPoolingHeight() {return Pooling_height;} //Return the output height of the pooling matrix
+	int getPoolingWidth() {return Pooling_Width;} //Return the output width of the pooling matrix
+	
+	const std::vector<std::vector<double>>& getPoolingMatrix() {return Pooling_Matrix;} //Return the output pooling 2D matrix
+	
+	
+private:
+
+std::vector<std::vector<double>> Pooling_Matrix; //Pooling output matrix
+
+void Pooling_process(const std::vector<double>& pixel, int idx); //Pooling process
+
+
+
 };
 
 #endif
