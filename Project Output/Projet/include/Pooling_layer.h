@@ -22,9 +22,11 @@ public:
 	
 private:
 
-std::vector<std::vector<double>> Pooling_Matrix; //Pooling output matrix
+	std::vector<std::vector<double>> Pooling_Matrix; //Pooling output matrix
 
-void Pooling_process(const std::vector<double>& pixel, int idx); //Pooling process
+	void cache_BK(const std::vector<double>& vect); //cache
+	void Pooling_process(const std::vector<double>& pixel, int idx); //Pooling process
+
 
 
 

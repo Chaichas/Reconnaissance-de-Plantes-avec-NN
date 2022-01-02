@@ -19,7 +19,7 @@ Convolution_layer::Convolution_layer(){} //constructor
 /*Here, we will update the weights of the filters using the Backpropagation
 
 cache_BK for implementing the backward phase, crucial for caching:
-(1) the input from convolution layer "before flattening" it, 21) the input "after flattening" and (3) the values input of the "softmax activation function" */
+(1) the input from convolution layer "before flattening" it, (2) the input "after flattening" and (3) the values input of the "softmax activation function" */
 
 void Convolution_layer::cache_BK(const std::vector<double>& vect){ //caching
   

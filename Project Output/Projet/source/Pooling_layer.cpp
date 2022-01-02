@@ -10,6 +10,25 @@
 Pooling_layer::Pooling_layer(){} //constructor
 
 
+/*Backpropagation from the softmax activation function to the pooling layer
+
+cache_BK for implementing the backward phase, crucial for caching:
+(1) the input from convolution layer "before flattening" it, (2) the input "after flattening" and (3) the values input of the "softmax activation function" */
+
+void Pooling_layer::cache_BK(const std::vector<double>& vect){ //caching
+  
+	CacheMat.clear(); //Clear the old CacheMat
+	CacheMat.resize(vect.size()); //Resize CacheMat
+
+	//Copy: output.assign(input.begin(), input.end());
+	CacheMat.assign(vect.begin(), vect.end()); //output = CacheMat
+	
+	int CacheMat_height = (Pooling_height * Pooling_size); //High of the cache matrix
+	int CacheMat_width = (Pooling_width * Pooling_size); //Width of the cache matrix
+}
+
+
+
 void Pooling_layer::Pooling_parameters(const std::vector<double>& vec_convolution, int input_height, int input_width){
 
 	int Pooling_height = input_height/Pooling_size; //Height of the output pooling matrix
