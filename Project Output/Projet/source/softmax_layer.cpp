@@ -22,6 +22,23 @@ void Softmax::Flatten_making(const std::vector<std::vector<double>>& img_input, 
 
 }
 
+void Softmax::Cache_making()
+{
+    //Effacer le dernier cache et redimensionner
+    mCachedFlatten.clear();
+    mCachedTotal.clear();
+    mCachedFlatten.resize(m_flatten.size());
+    mCachedTotal.resize(m_total.size());
+
+    //Copier la dernière entrée et les paramètres
+    mCachedLength = m_length;
+    mCachedFlatten.assign(m_flatten.begin(), m_flatten.end());
+    mCachedTotal.assign(m_total.begin(), m_total.end());
+
+}
+
+
+
 std::vector<double> Softmax::Softmax_start(const std::vector<std::vector<double>>& img_input, int img_height, int img_width)
 {
     m_lenght  = img_height * img_width * DEPTH;
@@ -84,7 +101,7 @@ std::vector<double> Softmax::Softmax_start(const std::vector<std::vector<double>
         vect_predictions.push_back(t);
     }
 
-   
+    cache_making(); //Créer le cache de la dernière entrée
 
     return predictions;
 }
