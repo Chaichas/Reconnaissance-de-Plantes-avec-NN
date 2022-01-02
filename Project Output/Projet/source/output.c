@@ -1,4 +1,25 @@
 
+//-------------------------------------------Prediction Part------------------------------------------------------
+
+std::vector<double> Output::prediction(int c, int& height, int& width)
+{
+  
+  
+  //TODO get prediction from softmax class
+
+  loss = -log(proba[c]);
+
+  auto max =std::max_element(proba.begin(), proba.end());
+  int proba_i = std::distance(proba.begin(), max);
+
+  if(proba_i == c)
+    m_acc = 1;
+  else
+    m_acc = 0;
+
+  return proba;
+}
+
 //-------------------------------------------Training Part------------------------------------------------------
 
 void Output::Training_data(int numb_epoch, double alpha)
