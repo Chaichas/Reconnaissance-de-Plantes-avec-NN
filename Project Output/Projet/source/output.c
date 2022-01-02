@@ -1,4 +1,6 @@
 
+//-------------------------------------------Training Part------------------------------------------------------
+
 void Output::Training_data(int numb_epoch, double alpha)
 {
   std::cout << "--------------Start Training ----------" << '\n';
@@ -28,8 +30,8 @@ void Output::Training_data(int numb_epoch, double alpha)
     }
     
     label_i++;
-    //Affichage de perte et de la precison pour chaque epoch 
     
+    //Affichage de perte et de la precison pour chaque epoch 
     std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc/label_i)*100 << " %" << '\n';
     runningLoss = 0.0;
     runningAcc = 0.0;
@@ -37,13 +39,14 @@ void Output::Training_data(int numb_epoch, double alpha)
   }
 }
 
+//-------------------------------------------Testing Part------------------------------------------------------
+
 void Output::Testing_data()
 {
   int label_i = 0;
   double runningAcc = 0.0, runningLoss = 0.0;
 
   std::cout << "-----------------Testing Data -------------------" << '\n';
-
 
   std::vector<int> labels_test;
   std::vector<std::string> testing_files = Reader::Process_directory(m_trainPath, Labels);
@@ -57,11 +60,32 @@ void Output::Testing_data()
     
     m_image->loadImage(name, hauteur, largeur);
     label_i = std::distance(testingFiles.begin(), it);
+    
+    //Recuperation de vecteur de probabilté de sortie 
     std::vector<double> out = prediction(labels_test[labelIndex], height, width);
 
     // TODO function out vector of prediction 
 
+    runningAcc += m_loss;
+    runningLoss += m_acc;
 
+    int predIndex = std::distance(out.begin(), std::max_element(out.begin(), out.end()));
+    if(labels_test[label_i]==predIndex)
+      right++;
+
+  }
+  label_i++;
+  
+  int wrong = label_i-right;
+  std::cout<<"--------------------------------Result of testing-------------------------"<< '\n';
+  
+  std::cout << "Average Loss" << runningLoss / label_i << " , Accuracy "<< '\n';
+  std::cout << "Accuracy "<< (runningAcc/label_i)*100 << " %." << '\n';
+  
+  std::cout<<"---------------------------------------------------------------------------"<< '\n';
+  std::cout << "Le nombre d'image de test est : "<< label_i << '\n';
+  std::cout << "Le nombre d'image correctement prédits : "<< right <<'\n';
+  std::cout << "Le nombre d'image non prédits : "<< wrong <<'\n';
 
 
 
