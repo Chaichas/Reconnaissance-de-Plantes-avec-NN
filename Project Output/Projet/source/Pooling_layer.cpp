@@ -15,6 +15,18 @@ void Pooling_layer::Pooling_parameters(const std::vector<double>& vec_convolutio
 	int Pooling_height = input_height/Pooling_size; //Height of the output pooling matrix
 	int Pooling_width = input_width/Pooling_size; //Width of the output pooling matrix
 	
+	Pooling_Matrix.clear(); //clear the last matrix
+	
+	//Pooling procedure for the 8 filters used
+	Pooling_process(vec_convolution, 0); //1st convolution matrix
+	Pooling_process(vec_convolution, 1); //2sd convolution matrix
+	Pooling_process(vec_convolution, 2); //3rd convolution matrix
+	Pooling_process(vec_convolution, 3); //4th convolution matrix
+	Pooling_process(vec_convolution, 4); //5th convolution matrix
+	Pooling_process(vec_convolution, 5); //6th convolution matrix
+	Pooling_process(vec_convolution, 6); //7th convolution matrix
+	Pooling_process(vec_convolution, 7); //8th convolution matrix
+	
 }
 
 
