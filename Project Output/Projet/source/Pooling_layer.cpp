@@ -17,11 +17,11 @@ cache_BK for implementing the backward phase, crucial for caching:
 
 void Pooling_layer::cache_BK(const std::vector<double>& vect){ //caching
   
-	CacheMat.clear(); //Clear the old CacheMat
-	CacheMat.resize(vect.size()); //Resize CacheMat
+	CacheMat_input.clear(); //Clear the old CacheMat_input
+	CacheMat_input.resize(vect.size()); //Resize CacheMat_input
 
 	//Copy: output.assign(input.begin(), input.end());
-	CacheMat.assign(vect.begin(), vect.end()); //output = CacheMat
+	CacheMat_input.assign(vect.begin(), vect.end()); //output = CacheMat_input
 	
 	int CacheMat_height = (Pooling_height * Pooling_size); //High of the cache matrix
 	int CacheMat_width = (Pooling_width * Pooling_size); //Width of the cache matrix
@@ -46,6 +46,8 @@ void Pooling_layer::Pooling_parameters(const std::vector<double>& vec_convolutio
 	Pooling_process(vec_convolution, 6); //7th convolution matrix
 	Pooling_process(vec_convolution, 7); //8th convolution matrix
 	
+	
+	cache_BK(vec_convolution); //Cache of vec_convolution input
 }
 
 

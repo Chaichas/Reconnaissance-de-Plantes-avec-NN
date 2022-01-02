@@ -23,7 +23,8 @@ public:
 private:
 
 	std::vector<std::vector<double>> Pooling_Matrix; //Pooling output matrix
-
+	std::vector<std::vector<double>> CacheMat_input; //CacheMat_input matrix
+	
 	void cache_BK(const std::vector<double>& vect); //cache
 	void Pooling_process(const std::vector<double>& pixel, int idx); //Pooling process
 
