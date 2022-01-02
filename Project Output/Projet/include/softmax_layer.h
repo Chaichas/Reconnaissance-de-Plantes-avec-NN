@@ -35,7 +35,11 @@ private:
 	
 	std::vector<double> mTotal; //Vecteur de stockage des prédictions finales pour chaque nœud (chiffre)
 
-  
+	void Cache_making();//Fonction pour faire des caches de la dernière entrée
+
+    int mCachedLength;
+	std::vector<double> mCachedFlatten;
+	std::vector<double> mCachedTotal;
 
 
 	
