@@ -2,7 +2,7 @@
 #define __CONVOLUTION_LAYER_H__
 
 #include <iostream>
-
+#include "Data.h"
 
 class Convolution_layer{
 
@@ -10,11 +10,11 @@ public:
 	Convolution_layer(); //Constructor
 	~Convolution_layer(); //Destructor
 
-	void convolution_parameters(const std::vector<double>& pixel_vec, int inputImage_height, int inputImage_width);
+	void convolution_parameters(const std::vector<double>& vec_pixel, int inputImage_height, int inputImage_width);
 
 	 //Get Height and Width of the convolutional output matrix
-	int getMatHeight() {return ConvMat_height;} //Convolutional output matrix height
-	int getMatWidth() {return ConvMat_width;} //Convolutional output matrix width
+	int getMatHeight() {return ConvMat_height;} //Convolution output matrix height
+	int getMatWidth() {return ConvMat_width;} //Convolution output matrix width
 	
 	//Get Convolution output Matrix
 	const std::vector<std::vector<double>>& getConvMat() const {return ConvMat;} 
