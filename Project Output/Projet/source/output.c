@@ -21,7 +21,7 @@ void Output::Training_data(int numb_epoch, double alpha)
       label_i = std::distance(trainingFiles.begin(), it);
            
       //Lancement de training
-      //train(    parametres               );
+      train(Labels[label_i], hauteur, largeur, alpha);
 
       runningLoss += loss;
       runningAcc += acc;
