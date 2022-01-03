@@ -4,7 +4,21 @@
 #include "cnn.h"
 #include "Direction_file.h"
 
+Output::Output(std::string file_train, std::string file_test) : m_trainPath(file_train), m_testPath(file_test)
+{
+  m_image = new Data();
+  m_conv = new Convolution_layer();
+  m_pool = new Pooling_layer();
+  m_softmax = new Softmax();
+}
 
+Output::~Output()
+{
+  delete m_image;
+  delete m_conv;
+  delete m_pool;
+  delete m_softmax;
+}
 //-------------------------Train-------------------------------
 
 void CNN::train(int c, int& hauteur, int& largeur, double& lRate)
