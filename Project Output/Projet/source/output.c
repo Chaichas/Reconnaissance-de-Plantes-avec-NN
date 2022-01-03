@@ -1,3 +1,17 @@
+//-------------------------Train-------------------------------
+
+void CNN::train(int c, int& hauteur, int& largeur, double& lRate)
+{
+  std::vector<double> proba = prediction(c, hauteur, largeur);
+
+  //Initialisation de gradient
+  std::vector<double> gradient = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  gradient[c] = (-1.0 / proba[c]);
+
+  std::vector<std::vector<double>> gradient_result = m_softmax->backProp(gradient, lRate);
+  std::vector<std::vector<double>> pool_result = m_pool->backProp(gradient_result);
+  m_conv->backProp(pool_result, lRate);
+}
 
 //-------------------------------------------Prediction Part------------------------------------------------------
 
