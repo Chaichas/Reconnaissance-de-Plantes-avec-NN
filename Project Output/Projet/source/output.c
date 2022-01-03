@@ -1,3 +1,38 @@
+//-------------------------Train-------------------------------
+
+void CNN::train(int c, int& hauteur, int& largeur, double& lRate)
+{
+  std::vector<double> proba = prediction(c, hauteur, largeur);
+
+  //Initialisation de gradient
+  std::vector<double> gradient = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  gradient[c] = (-1.0 / proba[c]);
+
+  std::vector<std::vector<double>> gradient_result = m_softmax->backProp(gradient, lRate);
+  std::vector<std::vector<double>> pool_result = m_pool->backProp(gradient_result);
+  m_conv->backProp(pool_result, lRate);
+}
+
+//-------------------------------------------Prediction Part------------------------------------------------------
+
+std::vector<double> Output::prediction(int c, int& height, int& width)
+{
+  
+  
+  //TODO get prediction from softmax class
+
+  loss = -log(proba[c]);
+
+  auto max =std::max_element(proba.begin(), proba.end());
+  int proba_i = std::distance(proba.begin(), max);
+
+  if(proba_i == c)
+    m_acc = 1;
+  else
+    m_acc = 0;
+
+  return proba;
+}
 
 //-------------------------------------------Training Part------------------------------------------------------
 
