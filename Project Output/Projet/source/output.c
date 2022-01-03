@@ -1,3 +1,10 @@
+#include <iostream>
+#include <string>
+
+#include "cnn.h"
+#include "Direction_file.h"
+
+
 //-------------------------Train-------------------------------
 
 void CNN::train(int c, int& hauteur, int& largeur, double& lRate)
@@ -19,7 +26,10 @@ std::vector<double> Output::prediction(int c, int& height, int& width)
 {
   
   
-  //TODO get prediction from softmax class
+  m_conv->convolution_parameters(m_image->get_fusion_canal(), hauteur, largeur);
+  m_pool->Pooling_parameters(m_conv->getConvMat(), m_conv->getMatHeight(), m_conv->getMatWidth());
+  std::vector<double> proba = m_softmax->startSoftmax(m_pool->getPooled(), m_pool->getHeight(), m_pool->getWidth());
+
 
   loss = -log(proba[c]);
 
@@ -98,8 +108,7 @@ void Output::Testing_data()
     
     //Recuperation de vecteur de probabilté de sortie 
     std::vector<double> out = prediction(labels_test[labelIndex], height, width);
-
-    // TODO function out vector of prediction 
+ 
 
     runningAcc += m_loss;
     runningLoss += m_acc;
@@ -123,5 +132,6 @@ void Output::Testing_data()
   std::cout << "Le nombre d'image non prédits : "<< wrong <<'\n';
 
 
+-----------------
 
 
