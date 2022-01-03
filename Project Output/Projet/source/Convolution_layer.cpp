@@ -1,33 +1,22 @@
 #include "Convolution_layer.h"
 #include "Random_weights" //Generation of random numbers
 
-//Input Parameters for the Convolution_layer class
-#define filter_number 8  //number of filters used
-#define filter_height 3 //hight of the filter
-#define filter_width 3 //width of the filter
-#define padding 0 //padding (explained in the descriptive)
-#define stride 1 //offset
-#define pooling_size 2 //pooling size
-
-//Note: This is the case of a valid convolution (i.e., the padding is null)
-
 
 Convolution_layer::Convolution_layer(){} //constructor
 
 
-
 /*Here, we will update the weights of the filters using the Backpropagation
 
-cache_BK for implementing the backward phase, crucial for caching:
+Hidden contain the hidden layers in the backward phase, crucial for caching:
 (1) the input from convolution layer "before flattening" it, (2) the input "after flattening" and (3) the values input of the "softmax activation function" */
 
-void Convolution_layer::cache_BK(const std::vector<double>& vect){ //caching
+void Convolution_layer::Hidden(const std::vector<double>& vect){ //caching
   
-	CacheMat.clear(); //Clear the old CacheMat
-	CacheMat.resize(vect.size()); //Resize CacheMat
+	HiddenMat.clear(); //Clear the old HiddenMat
+	HiddenMat.resize(vect.size()); //Resize HiddenMat
 
 	//Copy: output.assign(input.begin(), input.end());
-	CacheMat.assign(vect.begin(), vect.end()); //output = CacheMat
+	HiddenMat.assign(vect.begin(), vect.end()); //output = HiddenMat
 }
 
 
@@ -64,7 +53,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 	convolution_process(vec_pixel, 6); //7th filter
 	convolution_process(vec_pixel, 7); //8th filter
 	
-	cache_BK(vec_pixel); //caching the last input
+	Hidden(vec_pixel); //hiding the last input
 }
 
 
@@ -118,9 +107,9 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> dloss_d
 					for (int kk = 0; kk < filter_height; kk++){ //loop on the height of the filter
 						for (int hh = 0; hh < filter_width; hh++){ //loop on the width of the filter
 					
-							double value = (CacheMat[((ii + kk) * ((ConvMat_width - 1) * stride + filter_width - 2*padding) + (jj + hh))]); //pixel value of the last input stored in CacheMat
+							double value = (HiddenMat[((ii + kk) * ((ConvMat_width - 1) * stride + filter_width - 2*padding) + (jj + hh))]); //pixel value of the last input stored in HiddenMat
 						
-							vec.push_back(value); //store the CacheMat values in vec
+							vec.push_back(value); //store the HiddenMat values in vec
 					
 						}					
 					}

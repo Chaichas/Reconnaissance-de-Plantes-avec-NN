@@ -1,31 +1,25 @@
 #include "Pooling_layer.h"
-#include <algorithm>
+#include <algorithm> //for using max elements
 #include <cmath>
-
-//Parameters of Pooling
-#define Pooling_size 2
-#define Filter_height 2
-#define Filter_width 2
-#define Filter_number 8
 
 Pooling_layer::Pooling_layer(){} //constructor
 
 
 /*Backpropagation from the softmax activation function to the pooling layer
 
-cache_BK for implementing the backward phase, crucial for caching:
+Hidden for implementing the backward phase, crucial for caching:
 (1) the input from convolution layer "before flattening" it, (2) the input "after flattening" and (3) the values input of the "softmax activation function" */
 
-void Pooling_layer::cache_BK(const std::vector<double>& vect){ //caching
+void Pooling_layer::Hidden(const std::vector<double>& vect){ //caching
   
-	CacheMat_input.clear(); //Clear the old CacheMat_input
-	CacheMat_input.resize(vect.size()); //Resize CacheMat_input
+	HiddenMat_input.clear(); //Clear the old HiddenMat_input
+	HiddenMat_input.resize(vect.size()); //Resize HiddenMat_input
 
 	//Copy: output.assign(input.begin(), input.end());
-	CacheMat_input.assign(vect.begin(), vect.end()); //output = CacheMat_input
+	HiddenMat_input.assign(vect.begin(), vect.end()); //output = HiddenMat_input
 	
-	int CacheMat_height = (Pooling_height * Pooling_size); //High of the cache matrix
-	int CacheMat_width = (Pooling_width * Pooling_size); //Width of the cache matrix
+	HiddenMat_height = (Pooling_height * Pooling_size); //High of the HiddenMat matrix
+	HiddenMat_width = (Pooling_width * Pooling_size); //Width of the HiddenMat matrix
 }
 
 
@@ -48,7 +42,7 @@ void Pooling_layer::Pooling_parameters(const std::vector<double>& vec_convolutio
 	Pooling_process(vec_convolution, 7); //8th convolution matrix
 	
 	
-	cache_BK(vec_convolution); //Cache of vec_convolution input
+	Hidden(vec_convolution); //Cache of vec_convolution input
 }
 
 
@@ -109,7 +103,7 @@ std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std:
 					for (int kk = 0; kk < Filter_height; kk ++){
 						for (int hh = 0; hh < Filter_width; hh++){
 						
-							v.push_back(CacheMat_input[idx][(ii + kk) * (Pooling_width * Pooling_size) + (jj + hh)]);
+							v.push_back(HiddenMat_input[idx][(ii + kk) * (Pooling_width * Pooling_size) + (jj + hh)]);
 						}
 					}
 				
@@ -122,7 +116,7 @@ std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std:
 						int w;
 						
 						//We copy the gradient to the max pixel value
-						if(var && (dloss_dlayer_output[idx][iter] == CacheMat_input[idx][(ii + mm) * (Pooling_width * Pooling_size) + (jj + nn)] && weightMax == CacheMat_input[idx][(ii + mm) * w + (jj + nn)])) {
+						if(var && (dloss_dlayer_output[idx][iter] == HiddenMat_input[idx][(ii + mm) * (Pooling_width * Pooling_size) + (jj + nn)] && weightMax == HiddenMat_input[idx][(ii + mm) * w + (jj + nn)])) {
 						
 							dloss_dx[idx][(ii + mm) * (Pooling_width * Pooling_size) + (jj + nn)] == weightMax;
 							var = false;

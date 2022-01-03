@@ -4,6 +4,12 @@
 #include <iostream>
 #include <vector> //vector
 
+//Parameters of Pooling
+#define Pooling_size 2 //pooling stride
+#define Filter_height 2
+#define Filter_width 2 
+#define Filter_number 8 //number of filters used in convolution layer
+
 
 class Pooling_layer{
 
@@ -24,10 +30,10 @@ public:
 private:
 
 	std::vector<std::vector<double>> Pooling_Matrix; //Pooling output matrix
-	std::vector<std::vector<double>> CacheMat_input; //CacheMat_input matrix
+	std::vector<std::vector<double>> HiddenMat_input; //HiddenMat_input matrix
 	
-	int CacheMat_height, CacheMat_weight; //parameters for cache_BK
-	void cache_BK(const std::vector<double>& vect); //cache
+	int HiddenMat_height, HiddenMat_width; //parameters for Hidden
+	void Hidden(const std::vector<double>& vect); //hidding the last input
 	void Pooling_process(const std::vector<double>& pixel, int idx); //Pooling process
 
 };

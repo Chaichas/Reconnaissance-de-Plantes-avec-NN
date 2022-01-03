@@ -4,6 +4,16 @@
 #include <iostream>
 #include "Data.h"
 
+//Input Parameters for the Convolution_layer class
+#define filter_number 8  //number of filters used
+#define filter_height 3 //hight of the filter
+#define filter_width 3 //width of the filter
+#define padding 0 //padding (explained in the descriptive)
+#define stride 1 //offset
+#define pooling_size 2 //pooling size
+
+//Note: This is the case of a valid convolution (i.e., the padding is null)
+
 class Convolution_layer{
 
 public:
@@ -27,9 +37,9 @@ private:
 	
 	void convolution_process(const std::vector<double>& pixel, int idx); //multiplication and summation pixel value * filter value
 	
-	//Backpropagation: Caching inputs
-	std::vector<double> CacheMat; //Cache of inputs
-	void cache_BK(const std::vector<double>& vect);
+	//Backpropagation: Hiding inputs
+	std::vector<double> HiddenMat; //Hidding of inputs
+	void Hidden(const std::vector<double>& vect);
 
 public:
 
