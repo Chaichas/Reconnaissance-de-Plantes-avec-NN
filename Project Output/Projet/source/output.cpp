@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-
 #include "cnn.h"
 #include "Direction_file.h"
 
@@ -11,6 +10,7 @@ Output::Output(std::string file_train, std::string file_test) : m_trainPath(file
   m_pool = new Pooling_layer();
   m_softmax = new Softmax();
 }
+
 
 Output::~Output()
 {
@@ -43,17 +43,16 @@ std::vector<double> Output::prediction(int c, int& height, int& width)
   m_conv->convolution_parameters(m_image->get_fusion_canal(), hauteur, largeur);
   m_pool->Pooling_parameters(m_conv->getConvMat(), m_conv->getMatHeight(), m_conv->getMatWidth());
   std::vector<double> proba = m_softmax->startSoftmax(m_pool->getPooled(), m_pool->getHeight(), m_pool->getWidth());
-
-
+  
   loss = -log(proba[c]);
 
   auto max =std::max_element(proba.begin(), proba.end());
   int proba_i = std::distance(proba.begin(), max);
 
   if(proba_i == c)
-    m_acc = 1;
+    acc = 1;
   else
-    m_acc = 0;
+    acc = 0;
 
   return proba;
 }
@@ -127,7 +126,8 @@ void Output::Testing_data()
     runningAcc += m_loss;
     runningLoss += m_acc;
 
-    int predIndex = std::distance(out.begin(), std::max_element(out.begin(), out.end()));
+
+    auto predIndex = (std::max_element(out.begin(), out.end()));
     if(labels_test[label_i]==predIndex)
       right++;
 
