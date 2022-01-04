@@ -50,7 +50,7 @@ void Data::create_canal(cv::Mat image)
   }
 }
 
-const std::vector<double>& Image::get_fusion_canal() const
+const std::vector<double>& Data::get_fusion_canal() const
 {
   return m_ImageVector;
 }
