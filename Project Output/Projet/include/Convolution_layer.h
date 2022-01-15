@@ -1,8 +1,14 @@
-#ifndef __CONVOLUTION_LAYER_H__
-#define __CONVOLUTION_LAYER_H__
+#pragma once
 
 #include <iostream>
-#include "Data.h"
+#include "image.h"
+#include<vector>
+
+#include <iostream>
+#include <vector> //vector
+#include <chrono> //time
+#include <cmath> //math
+#include <random> //random
 
 //Input Parameters for the Convolution_layer class
 #define filter_number 8  //number of filters used
@@ -14,7 +20,7 @@
 
 //Note: This is the case of a valid convolution (i.e., the padding is null)
 
-class Convolution_layer{
+class Convolution_layer {
 
 public:
 	Convolution_layer(); //Constructor
@@ -22,24 +28,29 @@ public:
 
 	void convolution_parameters(const std::vector<double>& vec_pixel, int inputImage_height, int inputImage_width);
 
-	 //Get Height and Width of the convolutional output matrix
-	int getMatHeight() {return ConvMat_height;} //Convolution output matrix height
-	int getMatWidth() {return ConvMat_width;} //Convolution output matrix width
-	
+	//Get Height and Width of the convolutional output matrix
+	int getMatHeight() { return ConvMat_height; } //Convolution output matrix height
+	int getMatWidth() { return ConvMat_width; } //Convolution output matrix width
+
 	//Get Convolution output Matrix
-	const std::vector<std::vector<double>>& getConvMat() const {return ConvMat;} 
-	
+	const std::vector<std::vector<double>>& getConvMat() const { return ConvMat; }
+	void static random_weights(double nb_filters, double nb_weights, std::vector<std::vector<double>>& filter_matrix);
+
+
 private:
 
 	std::vector<std::vector<double>> ConvMat; //convolution matrix filled with values
-	
+
 	std::vector<std::vector<double>> filter_matrix; //Filter matrix filled with values
-	
+
+	int ConvMat_height, ConvMat_width; //con matrix intialization
+
 	void convolution_process(const std::vector<double>& pixel, int idx); //multiplication and summation pixel value * filter value
-	
+
 	//Backpropagation: Hiding inputs
-	std::vector<double> HiddenMat; //Hidding of inputs
+	std::vector<double> HiddenMat; //Hidding of inputs 
 	void Hidden(const std::vector<double>& vect);
+	bool initialization = true; //initializing filters with random values 
 
 public:
 
@@ -48,4 +59,3 @@ public:
 
 };
 
-#endif

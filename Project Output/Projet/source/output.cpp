@@ -1,151 +1,191 @@
-#include <iostream>
+﻿#include <iostream>
 #include <string>
-#include "cnn.h"
-#include "Direction_file.h"
+#include <dirent.h>
+#include <algorithm>
+#include <memory>
+#include <ctime>
+//For back_inserter
+#include <iterator>
 
-Output::Output(std::string file_train, std::string file_test) : m_trainPath(file_train), m_testPath(file_test)
+#include "cnn.h"
+
+
+
+output::output(std::string file_train, std::string file_test) : m_trainPath(file_train), m_testPath(file_test)
 {
-  m_image = new Data();
-  m_conv = new Convolution_layer();
-  m_pool = new Pooling_layer();
-  m_softmax = new Softmax();
+    m_image = new Data();
+    m_convol = new Convolution_layer();
+    m_pool = new Pooling_layer();
+    m_softmax = new Softmax_layer();
 }
 
 
-Output::~Output()
+output::~output()
 {
-  delete m_image;
-  delete m_conv;
-  delete m_pool;
-  delete m_softmax;
+    delete m_image;
+    delete m_pool;
+    delete m_softmax;
 }
 //-------------------------Train-------------------------------
 
-void CNN::train(int c, int& hauteur, int& largeur, double& lRate)
+/*void output::train(int c, int& hauteur, int& largeur, double& lRate)
 {
-  std::vector<double> proba = prediction(c, hauteur, largeur);
+    std::vector<double> proba = prediction(c, hauteur, largeur);
 
-  //Initialisation de gradient
-  std::vector<double> gradient = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-  gradient[c] = (-1.0 / proba[c]);
+    //Initialisation de gradient
+    std::vector<double> gradient = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    gradient[c] = (-1.0 / proba[c]);
 
-  std::vector<std::vector<double>> gradient_result = m_softmax->backProp(gradient, lRate);
-  std::vector<std::vector<double>> pool_result = m_pool->backProp(gradient_result);
-  m_conv->backProp(pool_result, lRate);
+    std::vector<std::vector<double>> gradient_result = m_softmax->BackPropagation(gradient, lRate);
+    std::vector<std::vector<double>> pool_result = m_pool->BackPropagation(gradient_result);
+    m_convol->BackPropagation(pool_result, lRate);
 }
-
+*/
 //-------------------------------------------Prediction Part------------------------------------------------------
 
-std::vector<double> Output::prediction(int c, int& height, int& width)
+std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
 {
-  
-  
-  m_conv->convolution_parameters(m_image->get_fusion_canal(), hauteur, largeur);
-  m_pool->Pooling_parameters(m_conv->getConvMat(), m_conv->getMatHeight(), m_conv->getMatWidth());
-  std::vector<double> proba = m_softmax->startSoftmax(m_pool->getPooled(), m_pool->getHeight(), m_pool->getWidth());
-  
-  loss = -log(proba[c]);
 
-  auto max =std::max_element(proba.begin(), proba.end());
-  int proba_i = std::distance(proba.begin(), max);
 
-  if(proba_i == c)
-    acc = 1;
-  else
-    acc = 0;
+    m_convol->convolution_parameters(m_image->get_fusion_canal(), hauteur, largeur);
+    m_pool->Pooling_parameters(m_convol->getConvMat(), m_convol->getMatHeight(), m_convol->getMatWidth());
+    std::vector<double> proba = m_softmax->Softmax_start(m_pool->getPoolingMatrix(), m_pool->getPoolingHeight(), m_pool->getPoolingWidth());
 
-  return proba;
+    loss = -log(proba[c]);
+
+    //auto  max = std::max_element(proba.begin(), proba.end());
+    int proba_i = std::distance(proba.begin(), std::max_element(proba.begin(), proba.end()));
+
+    if (proba_i == c)
+        acc = 1;
+    else
+        acc = 0;
+
+    return proba;
 }
 
 //-------------------------------------------Training Part------------------------------------------------------
 
-void Output::Training_data(int numb_epoch, double alpha)
+void output::Training_data(int numb_epoch, double alpha)
 {
-  std::cout << "--------------Start Training ----------" << '\n';
-  
-  std::vector<int> Labels;
-  std::vector<std::string> training_files = Reader::Process_directory(m_trainPath, Labels);
+    std::cout << "--------------Start Training ----------" << '\n';
 
-  int it=0;
-  while(it < numb_epoch) {
+    std::vector<int> Labels;
+    std::vector<std::string> training_files = output::Process_directory(m_trainPath, Labels);
 
-    int label_i = 0;
-    double runningAcc = 0.0, runningLoss = 0.0;
+    int it = 0;
+    while (it < numb_epoch) {
 
-    for (std::vector<std::string>::iterator it = training_files.begin() ; it != training_files.end(); ++it)
-    {
-      std::string name = *it;
-      int hauteur = 0, largeur = 0;
-      
-      m_image->loadImage(name, hauteur, largeur);
-      label_i = std::distance(trainingFiles.begin(), it);
+        int label_i = 0;
+        double runningAcc = 0.0, runningLoss = 0.0;
+
+        for (std::vector<std::string>::iterator it = training_files.begin(); it != training_files.end(); ++it)
+        {
+            std::string name = *it;
+            int hauteur = 0, largeur = 0;
+
+            m_image->loadImage(name, hauteur, largeur);
+            label_i = std::distance(training_files.begin(), it);
+
+            //Lancement de training
            
-      //Lancement de training
-      train(Labels[label_i], hauteur, largeur, alpha);
 
-      runningLoss += loss;
-      runningAcc += acc;
+            std::vector<double> proba = prediction(Labels[label_i], hauteur, largeur);
+
+            //Initialisation de gradient
+            std::vector<double> gradient = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+            gradient[Labels[label_i]] = (-1.0 / proba[Labels[label_i]]);
+
+            std::vector<std::vector<double>> gradient_result = m_softmax->BackPropagation(gradient, alpha);
+            std::vector<std::vector<double>> pool_result = m_pool->BackPropagation(gradient_result);
+            m_convol->BackPropagation(pool_result, alpha);
+
+            runningLoss += loss;
+            runningAcc += acc;
+        }
+
+        label_i++;
+
+        //Affichage de perte et de la precison pour chaque epoch 
+        std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc / label_i) * 100 << " %" << '\n';
+        runningLoss = 0.0;
+        runningAcc = 0.0;
+        it++;
     }
-    
-    label_i++;
-    
-    //Affichage de perte et de la precison pour chaque epoch 
-    std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc/label_i)*100 << " %" << '\n';
-    runningLoss = 0.0;
-    runningAcc = 0.0;
-    it++;
-  }
 }
 
 //-------------------------------------------Testing Part------------------------------------------------------
 
-void Output::Testing_data()
+void output::Testing_data()
 {
-  int label_i = 0;
-  double runningAcc = 0.0, runningLoss = 0.0;
+    int label_i = 0;
+    double runningAcc = 0.0, runningLoss = 0.0;
 
-  std::cout << "-----------------Testing Data -------------------" << '\n';
+    std::cout << "-----------------Testing Data -------------------" << '\n';
 
-  std::vector<int> labels_test;
-  std::vector<std::string> testing_files = Reader::Process_directory(m_trainPath, Labels);
+    std::vector<int> labels_test;
+    std::vector<std::string> testing_files = output::Process_directory(m_trainPath, labels_test);
 
-  int right = 0;
+    int right = 0;
 
-  for (std::vector<std::string>::iterator it = testingFiles.begin() ; it != testingFiles.end(); ++it)
-  {
-    std::string name = *it;
-    int hauteur = 0, largeur = 0;
-    
-    m_image->loadImage(name, hauteur, largeur);
-    label_i = std::distance(testingFiles.begin(), it);
-    
-    //Recuperation de vecteur de probabilté de sortie 
-    std::vector<double> out = prediction(labels_test[labelIndex], height, width);
- 
+    for (std::vector<std::string>::iterator it = testing_files.begin(); it != testing_files.end(); ++it)
+    {
+        std::string name = *it;
+        int hauteur = 0, largeur = 0;
 
-    runningAcc += m_loss;
-    runningLoss += m_acc;
+        m_image->loadImage(name, hauteur, largeur);
+        label_i = std::distance(testing_files.begin(), it);
+
+        //Recuperation de vecteur de probabilt� de sortie 
+        std::vector<double> out = prediction(labels_test[label_i], hauteur, largeur);
 
 
-    auto predIndex = (std::max_element(out.begin(), out.end()));
-    if(labels_test[label_i]==predIndex)
-      right++;
+        runningAcc += loss;
+        runningLoss += acc;
 
-  }
-  label_i++;
-  
-  int wrong = label_i-right;
-  std::cout<<"--------------------------------Result of testing-------------------------"<< '\n';
-  
-  std::cout << "Average Loss" << runningLoss / label_i << " , Accuracy "<< '\n';
-  std::cout << "Accuracy "<< (runningAcc/label_i)*100 << " %." << '\n';
-  
-  std::cout<<"---------------------------------------------------------------------------"<< '\n';
-  std::cout << "Le nombre d'image de test est : "<< label_i << '\n';
-  std::cout << "Le nombre d'image correctement prédits : "<< right <<'\n';
-  std::cout << "Le nombre d'image non prédits : "<< wrong <<'\n';
+        int predIndex = std::distance(out.begin(), std::max_element(out.begin(), out.end()));
+
+        if (labels_test[label_i] == predIndex)
+            right++;
+
+    }
+    label_i++;
+
+    int wrong = label_i - right;
+    std::cout << "--------------------------------Result of testing-------------------------" << '\n';
+
+    std::cout << "Average Loss" << runningLoss / label_i << " , Accuracy " << '\n';
+    std::cout << "Accuracy " << (runningAcc / label_i) * 100 << " %." << '\n';
+
+    std::cout << "---------------------------------------------------------------------------" << '\n';
+    std::cout << "Le nombre d'image de test est : " << label_i << '\n';
+    std::cout << "Le nombre d'image correctement pr�dits : " << right << '\n';
+    std::cout << "Le nombre d'image non pr�dits : " << wrong << '\n';
 
 
------------------
+}
+
+
+std::vector<std::string> output::Process_directory(const std::string& path, std::vector<int>& label) {
+
+    DIR* dir;
+    dirent* pDir;
+    std::vector<std::string> temp_files;
+    dir = opendir(path.c_str());
+    while (pDir = readdir(dir)) {
+        std::string name = pDir->d_name;
+        int32_t pos = name.find(".");
+        std::string extension = name.substr(pos+1);
+        if (extension == "jpg") {
+            std::string a = path + "/" + name;
+            temp_files.push_back(a);
+            //Get label
+            char c = name[0];
+            int ic = c - '0';
+            label.push_back(ic);
+        }
+    }
+    return temp_files;
+}
 
 

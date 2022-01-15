@@ -1,207 +1,202 @@
-#include "softmax_layer.h"
+﻿#include "softmax.h"
 #include <algorithm>
+#include "convolution.h"
 
-
-Softmax::Softmax()
+void Softmax_layer::Flatten(const std::vector<std::vector<double>>& img_input, int d)
 {
+    for (int i = 0; i < d; i++) {
+        mFlatten.insert(mFlatten.end(), img_input[i].begin(), img_input[i].end());
+    }
 
 }
 
-Softmax::~Softmax()
-{
-
-}
-void Softmax::Flatten_making(const std::vector<std::vector<double>>& img_input, int d)
-{
-
-   for (int i = 0; i<d ; i++){
-
-           mFlatten.insert(mFlatten.end(), img_input[i].begin(), img_input[i].end());
-
-   }
-
-}
-
-void Softmax::Cache_making()
+void Softmax_layer::Hidden()
 {
     //Effacer le dernier cache et redimensionner
     mCachedFlatten.clear();
     mCachedTotal.clear();
-    mCachedFlatten.resize( mFlatten.size());
-    mCachedTotal.resize( mTotal.size());
+    mCachedFlatten.resize(mFlatten.size());
+    mCachedTotal.resize(mTotal.size());
 
-    //Copier la dernière entrée et les paramètres
-    mCachedLength =  mLength;
-    mCachedFlatten.assign( mFlatten.begin(),  mFlatten.end());
-    mCachedTotal.assign( mTotal.begin(),  mTotal.end());
+    //Copier la derniére entrée et les paramétres
+    mCachedLength = mLength;
+    mCachedFlatten.assign(mFlatten.begin(), mFlatten.end());
+    mCachedTotal.assign(mTotal.begin(), mTotal.end());
 
 }
 
 
 
-std::vector<double> Softmax::Softmax_start(const std::vector<std::vector<double>>& img_input, int img_height, int img_width)
+std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<double>>& img_input, int img_height, int img_width)
 {
-     mLength  = img_height * img_width * DEPTH;
-    bool  init = true;
+    mLength = img_height * img_width * DEPTH;
+    
 
-    //Pour l'initialisation des poids et des biais en première exécution
-    if (init)
+    //Pour l'initialisation des poids et des biais en premiére exécution
+    if (pred)
     {
-        //Attribuez 0 à  mBiases (la longueur de m_biase est de 10)
-         mBiases.assign(ND, 0.0);
+        //Attribuez 0 à mBiases (la longueur de m_biase est de 5)
+        mBiases.assign(ND, 0.0);
 
-        //Distribution de nombres aléatoires qui produit des valeurs à virgule flottante selon une distribution normale
-        Random_weights(mLength, ND, mWeights);
-        
-        size_t  i = 0 , j = 0;      
-        while(i< mLength){
-             while(i< mLength){
-                  mWeights[i][j] = (double)mWeights[i][j] / (double)mLength;
-                  j++;
-             }
-             i++;
+        //Distribution de nombres aléatoires qui produit des valeurs  virgule flottante selon une distribution normale
+        Convolution_layer::random_weights(mLength, ND, mWeights);
+
+
+        for (size_t i = 0; i < mLength; i++) {
+            for (size_t j = 0; j < ND; j++) {
+                mWeights[i][j] = (double)mWeights[i][j] / (double)mLength;
+            }
         }
-       
-        init = false;
+
+        pred = false;
     }
 
     mFlatten.clear();//Effacer le dernier aplatissement de l'entrée
     mTotal.clear();//Effacer la derniere prédiction 
 
 
-    Flatten_making(input_img, DEPTH);
+    Flatten(img_input, DEPTH);
 
     //Multiplier l'entrée aplatie et mWeights
-    for (int i = 0; i < ND; i++) {
+    int i = 0;
+    while (i < ND){
         double s = 0;
-        // Boucle pour multiplier  mWeights[j] pour chaque  digit[i] avec chaque mFlatten [j]
-        for (int j = 0; j <  mLength; j++) {
-            s += (mFlatten[j] * mWeights[j][i]);
+        // Boucle pour multiplier  mWeights[j] pour chaque  plante avec chaque mFlatten [j]
+        for (int j = 0; j < mLength; j++) {
+            s = s + (mFlatten[j] * mWeights[j][i]);
         }
         //Somme de biais
-        s += mBiases[i];
+        s = s + mBiases[i];
         mTotal.push_back(s);
+        i++;
     }
     std::vector<double>  vectExponentiel;
     std::vector<double>  vectPredictions;
 
     double  sumExp = 0.0;
     double t = 0.0;
-
-    for (int i = 0; i < ND; i++)
+    i = 0;
+    while( i < ND)
     {
-        t = exp( mTotal[i]);
-         vectExponentiel.push_back(t);
-         sumExp += (t);
+        t = exp(mTotal[i]);
+        vectExponentiel.push_back(t);
+        sumExp = sumExp + t;
+        i++;
+    }
+    int j = 0;
+    while (j < ND)
+    {
+        t = ((double)vectExponentiel[j] / (double)sumExp);
+        vectPredictions.push_back(t);
+        j++;
     }
 
-    for (int i = 0; i < ND; i++)
-    {
-        t = ((double) vectExponentiel[i] / (double) sumExp);
-         vectPredictions.push_back(t);
-    }
+    Hidden(); //Créer le cache de la derniére entrée
 
-    cache_making(); //Créer le cache de la dernière entrée
-
-    return predictions;
+    return vectPredictions;
 }
 
-std::vector<std::vector<double>> Softmax::backProp(const std::vector<double>&  dloss_dlayer_output, const double  learnRate)
-{
-    // dloss_dlayer_output est le gradient de perte pour les sorties de cette couche
-    std::vector<std::vector<double>> d_L_d_inputs_shaped;
 
-    for (int i = 0; i <  ND; i++)
+
+
+std::vector<std::vector<double>> Softmax_layer::BackPropagation(const std::vector<double>& dLossdOut, const double learn_rate)
+{
+    //dLossdOut is the loss gradient for this layer's outputs
+    std::vector<std::vector<double>> dlossdinputs_shaped;
+
+    for (int i = 0; i < ND; i++)
+    
     {
         //Seul 1 élément de dloss_dlayer_output sera différent de zéro
-        if ( dloss_dlayer_output[i] == 0)
+        if (dLossdOut[i] == 0)
             continue;
 
-       //Compter les exp^totals et Somme de tous les exp^totals
-        std::vector<double>  totalExp;
-        double s = 0.0;
-        double t = 0.0;
-        for (size_t i = 0; i < ND; i++) {
-            t = exp( mCachedTotal[i]);
-             totalExp.push_back(t);
-            s += (t);
+        //Compter les exp^totals et Somme de tous les exp^totals
+        std::vector<double> t_exp;
+        double sum = 0.0;
+        double temp = 0.0;
+        for (int i = 0; i < ND; i++) {
+            temp = exp(mCachedTotal[i]);
+            t_exp.push_back(temp);
+            sum += (temp);
         }
 
-        //Gradients de out[i] par rapport aux total
-        std::vector<double> d_out_d_t;
-        for (size_t j = 0; j <  ND; j++) {
-            d_out_d_t.push_back((- totalExp[i]) *  totalExp[j] / (double)(pow(s, 2)));
+        // Gradients des total par rapport aux total
+        std::vector<double> dOutdt;
+        for (int j = 0; j < ND; j++) {
+            dOutdt.push_back((-t_exp[i]) * t_exp[j] / (double)(pow(sum, 2)));
         }
 
-        d_out_d_t[i] =  totalExp[i] * (s -  totalExp[i]) / (double)(pow(s, 2));
+        dOutdt[i] = t_exp[i] * (sum - t_exp[i]) / (double)(pow(sum, 2));
 
         // Gradients des total par rapport aux poids/biais/entrée
-        std::vector<double> d_t_d_w =  mCachedFlatten;
+        std::vector<double> dtdw = mCachedFlatten;
 
-        double d_t_d_b = 1.0;
+        double dtdb = 1.0;
 
-        std::vector<std::vector<double>> d_t_d_inputs =  mWeights;
+        std::vector<std::vector<double>> dtdinputs = mWeights;
 
         // Gradients de perte par rapport aux total
-        std::vector<double>  dloss_dlayer_total;
-        for (size_t j = 0; j <  ND; j++) {
-             dloss_dlayer_total.push_back( dloss_dlayer_output[i] * d_out_d_t[j]);
+        std::vector<double> dLossdt;
+        for (size_t j = 0; j < ND; j++) {
+            dLossdt.push_back(dLossdOut[i] * dOutdt[j]);
         }
 
-        //Gradients de perte par rapport aux poids/biais/entrée
-        std::vector<std::vector<double>>  dloss_dlayer_weights;
-        for (int k = 0; k <  mCachedLength; k++) {
-            std::vector<double> sum;
-            for (int j = 0; j <  ND; j++) {
-                double s = 0;
-                s += (d_t_d_w[k] *  dloss_dlayer_total[j]);
-                sum.push_back(s);
+        std::vector<double> dlossdinputs;
+        for (int i = 0; i < mCachedLength; i++) {
+            double sum = 0.0;
+            for (int j = 0; j < ND; j++) {
+                sum = sum + (dtdinputs[i][j] * dLossdt[j]);
             }
-             dloss_dlayer_weights.push_back(sum);
+            dlossdinputs.push_back(sum);
+        }
+        // Gradients de perte par rapport aux biais
+        std::vector<double> dLossdb;
+        for (int j = 0; j < ND; j++) {
+            dLossdb.push_back(dLossdt[j] * dtdb);
         }
 
-        std::vector<double>  dloss_dlayer_biases;
-        for (size_t j = 0; j <  ND; j++) {
-             dloss_dlayer_biases.push_back( dloss_dlayer_total[j] * d_t_d_b);
-        }
-
-        std::vector<double> d_L_d_inputs;
-        for (int i = 0; i <  mCachedLength; i++) {
-            double s = 0.0;
-            for (int j = 0; j <  ND; j++) {
-                s += (d_t_d_inputs[i][j] *  dloss_dlayer_total[j]);
+        // Gradients de perte par rapport aux poids
+        std::vector<std::vector<double>> dLossdw;
+        for (int k = 0; k < mCachedLength; k++) {
+            std::vector<double> vectsum;
+            for (int j = 0; j < ND; j++) {
+                double sum = 0;
+                sum = sum + (dtdw[k] * dLossdt[j]);
+                vectsum.push_back(sum);
             }
-            d_L_d_inputs.push_back(s);
+            dLossdw.push_back(vectsum);
         }
 
-        //Update weights / biases
-        for (int k = 0; k <  mWeights.size(); k++)
+       
+
+        //mettre à jour les poids et les biais
+        for (int k = 0; k < mWeights.size(); k++)
         {
-            for (int j = 0; j <  mWeights[k].size(); j++)
+            for (int j = 0; j < mWeights[k].size(); j++)
             {
-                 mWeights[k][j] -= ( learnRate *  dloss_dlayer_weights[k][j]);
+                mWeights[k][j] = mWeights[k][j] - (learn_rate * dLossdw[k][j]);
             }
         }
-        for (int k = 0; k <  mBiases.size(); k++)
+        for (int k = 0; k < mBiases.size(); k++)
         {
-             mBiases[k] -= ( learnRate *  dloss_dlayer_biases[k]);
+            mBiases[k] = mBiases[k] -(learn_rate * dLossdb[k]);
         }
 
         //Nous devons reshape() avant de retourner d_L_d_inputs car nous avons aplati l'entrée lors de la passe avant
         for (int k = 0; k < DEPTH; k++)
         {
             std::vector<double> input;
-            for (size_t p = 0; p < ( mCachedLength / DEPTH); p++) {
-                input.push_back(d_L_d_inputs[k * ( mCachedLength / DEPTH) + p]);
+            for (size_t p = 0; p < (mCachedLength / DEPTH); p++) {
+                input.push_back(dlossdinputs[k * (mCachedLength / DEPTH) + p]);
             }
-            d_L_d_inputs_shaped.push_back(input);
+            dlossdinputs_shaped.push_back(input);
         }
 
-        return d_L_d_inputs_shaped;
-
+        
+        return dlossdinputs_shaped;
     }
-    return d_L_d_inputs_shaped;
-}    
-
-
+    
+    return dlossdinputs_shaped;
+}
 
