@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include "image.h"
+#include "Data.h"
 
 Data::Data() {}
 Data::~Data() {}

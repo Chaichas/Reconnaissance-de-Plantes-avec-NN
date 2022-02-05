@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include "image.h"
+#include "Data.h"
 #include<vector>
 
 #include <iostream>

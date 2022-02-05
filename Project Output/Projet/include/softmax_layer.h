@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 
-#include "convolution.h"
-#include "pooling.h"
+#include "Convolution_layer.h"
+#include "Pooling_layer.h"
 #include <vector>
 
 //Macros pour la couche softmax

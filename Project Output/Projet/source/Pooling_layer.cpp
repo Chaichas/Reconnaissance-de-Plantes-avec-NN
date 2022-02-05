@@ -1,4 +1,4 @@
-#include "pooling.h"
+#include "Pooling_layer.h"
 #include <algorithm> //for using max elements
 #include <cmath>
 

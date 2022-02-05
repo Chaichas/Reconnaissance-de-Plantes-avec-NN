@@ -1,5 +1,5 @@
 #include <iostream>
-#include "convolution.h"
+#include "Convolution_layer.h"
 #include<vector>
 
 Convolution_layer::Convolution_layer() {} //constructor

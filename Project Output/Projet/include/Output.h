@@ -1,10 +1,10 @@
 ﻿#pragma once
 
 #include <vector>
-#include "image.h"
-#include "convolution.h"
-#include "pooling.h"
-#include "softmax.h"
+#include "Data.h"
+#include "Convolution_layer.h"
+#include "Pooling_layer.h"
+#include "softmax_layer.h"
 
 class output
 {

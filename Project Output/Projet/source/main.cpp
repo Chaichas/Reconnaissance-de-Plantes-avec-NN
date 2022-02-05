@@ -1,5 +1,5 @@
 #include <string>
-#include "cnn.h"
+#include "Output.h"
 
 int main()
 {
