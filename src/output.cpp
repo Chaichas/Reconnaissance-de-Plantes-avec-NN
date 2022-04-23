@@ -89,7 +89,6 @@ void output::Training_data(int numb_epoch, double alpha)
 
             //Lancement de training
            
-
             std::vector<double> proba = prediction(Labels[label_i], hauteur, largeur);
 
             //Initialisation de gradient
@@ -127,7 +126,6 @@ void output::Testing_data()
     std::vector<std::string> testing_files = output::Process_directory(m_trainPath, labels_test);
 
     int right = 0;
-
     for (std::vector<std::string>::iterator it = testing_files.begin(); it != testing_files.end(); ++it)
     {
         std::string name = *it;
@@ -136,7 +134,7 @@ void output::Testing_data()
         m_image->loadImage(name, hauteur, largeur);
         label_i = std::distance(testing_files.begin(), it);
 
-        //Recuperation de vecteur de probabilt� de sortie 
+        //Recuperation de vecteur de probabilte de sortie 
         std::vector<double> out = prediction(labels_test[label_i], hauteur, largeur);
 
 
@@ -159,8 +157,8 @@ void output::Testing_data()
 
     std::cout << "---------------------------------------------------------------------------" << '\n';
     std::cout << "Le nombre d'image de test est : " << label_i << '\n';
-    std::cout << "Le nombre d'image correctement pr�dits : " << right << '\n';
-    std::cout << "Le nombre d'image non pr�dits : " << wrong << '\n';
+    std::cout << "Le nombre d'image correctement predits : " << right << '\n';
+    std::cout << "Le nombre d'image non predits : " << wrong << '\n';
 
 
 }
@@ -172,7 +170,7 @@ std::vector<std::string> output::Process_directory(const std::string& path, std:
     dirent* pDir;
     std::vector<std::string> temp_files;
     dir = opendir(path.c_str());
-    while (pDir == readdir(dir)) {
+    while (pDir = readdir(dir)) {
         std::string name = pDir->d_name;
         int32_t pos = name.find(".");
         std::string extension = name.substr(pos+1);
