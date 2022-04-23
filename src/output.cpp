@@ -7,7 +7,7 @@
 //For back_inserter
 #include <iterator>
 
-#include "include/Output.h"
+#include "../include/Output.h"
 
 
 
@@ -172,7 +172,7 @@ std::vector<std::string> output::Process_directory(const std::string& path, std:
     dirent* pDir;
     std::vector<std::string> temp_files;
     dir = opendir(path.c_str());
-    while (pDir = readdir(dir)) {
+    while (pDir == readdir(dir)) {
         std::string name = pDir->d_name;
         int32_t pos = name.find(".");
         std::string extension = name.substr(pos+1);

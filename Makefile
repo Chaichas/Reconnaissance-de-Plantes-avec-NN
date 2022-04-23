@@ -3,44 +3,46 @@
 # project name
 TARGET = CNN
 
-LINKER = g++ 
+CC = g++ 
 
+# Compiling flags
+CFLAGS = -O3 -Wall
 
+# linking flags & libraries
 LFLAGS = -I/usr/include/opencv4/ -lopencv_core -lopencv_videoio -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lgomp 
 
-CFLAGS = 
-
 # Proper directories 
-SRCDIR = include
+SRCDIR = src
+INCDIR = include
 
 
-all: program main convolution_layer Data Pooling_layer program output softmax_layer 
+all: program
 
-program : main convolution_layer Data Pooling_layer program output softmax_layer
-	$(LINKER)  $(OPTFLAGS) -o $@ $^  $(LFLAGS)
+program : main convolution_layer Data Pooling_layer output softmax_layer
+	$(CC)  $(CFLAGS) -o $@ $^  $(LFLAGS)
 
 Run_program: program
 	./program
 
-convolution_layer: Convolution_layer.cpp ${SRCDIR}/Convolution_layer.h
-	$(LINKER)  $(OPTFLAGS) -c $< -o $@  $(LFLAGS)
+convolution_layer: ${SRCDIR}/Convolution_layer.cpp ${INCDIR}/Convolution_layer.h
+	$(CC)  $(CFLAGS) -c $< -o $@  $(LFLAGS)
 	
-output : output.cpp ${SRCDIR}/Output.h 
-	$(LINKER)  $(OPTFLAGS) -c $< -o $@ $(LFLAGS)
+output : ${SRCDIR}/output.cpp ${INCDIR}/Output.h 
+	$(CC)  $(CFLAGS) -c $< -o $@ $(LFLAGS)
 	
-Data : Data.cpp ${SRCDIR}/Data.h
-	$(LINKER)  $(OPTFLAGS) -c $< -o $@ $(LFLAGS)
+Data : ${SRCDIR}/Data.cpp ${INCDIR}/Data.h
+	$(CC)  $(CFLAGS) -c $< -o $@ $(LFLAGS)
 	
-Pooling_layer : Pooling_layer.cpp ${SRCDIR}/Pooling_layer.h
-	$(LINKER)  $(OPTFLAGS) -c $< -o $@ $(LFLAGS)
+Pooling_layer : ${SRCDIR}/Pooling_layer.cpp ${INCDIR}/Pooling_layer.h
+	$(CC)  $(CFLAGS) -c $< -o $@ $(LFLAGS)
 	
-main : main.cpp ${SRCDIR}/Convolution_layer.h ${SRCDIR}/Data.h ${SRCDIR}/Pooling_layer.h ${SRCDIR}/softmax_layer.h
-	$(LINKER)  $(OPTFLAGS) -c $< -o $@ $(LFLAGS)
+main : ${SRCDIR}/main.cpp ${INCDIR}/Convolution_layer.h ${INCDIR}/Data.h ${INCDIR}/Pooling_layer.h ${INCDIR}/softmax_layer.h
+	$(CC)  $(CFLAGS) -c $< -o $@ $(LFLAGS)
 	
-softmax_layer : softmax_layer.cpp ${SRCDIR}/softmax_layer.h ${SRCDIR}/Convolution_layer.h
-	$(LINKER)  $(OPTFLAGS) -c $< -o $@ $(LFLAGS)
+softmax_layer : ${SRCDIR}/softmax_layer.cpp ${INCDIR}/softmax_layer.h ${INCDIR}/Convolution_layer.h
+	$(CC)  $(CFLAGS) -c $< -o $@ $(LFLAGS)
 
 
 clean:
-	rm -Rf *~ Run_program main convolution_layer Data Pooling_layer program output softmax_layer *.optrpt
+	rm -Rf *~ program main convolution_layer Data Pooling_layer output softmax_layer *.optrpt
 

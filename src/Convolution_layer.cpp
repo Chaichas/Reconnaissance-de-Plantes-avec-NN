@@ -1,5 +1,5 @@
 #include <iostream>
-#include "include/Convolution_layer.h"
+#include "../include/Convolution_layer.h"
 #include<vector>
 
 Convolution_layer::Convolution_layer() {} //constructor
@@ -96,7 +96,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
     for (int i = 0; i < ConvMat_height; i++)
     {
         for (int j = 0; j < ConvMat_width; j++) {
-            double sum = 0;
+            //double sum = 0;
             std::vector<double> v;
             for (int k = 0; k < filter_height; k++) {
                 for (int n = 0; n < filter_width; n++) {

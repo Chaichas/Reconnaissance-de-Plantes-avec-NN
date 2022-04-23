@@ -1,5 +1,5 @@
 #include <string>
-#include "include/Output.h"
+#include "../include/Output.h"
 
 int main()
 {

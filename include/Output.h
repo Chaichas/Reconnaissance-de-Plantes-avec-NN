@@ -22,7 +22,7 @@ private:
 	Pooling_layer* m_pool;
 	Softmax_layer* m_softmax;
 	void train(int label, int& hauteur, int& largeur, double& lRate);
-	////pour recuperer le vecteur de probabilt� de sortie 
+	////pour recuperer le vecteur de probabilte de sortie 
 	std::vector<double> prediction(int label, int& hauteur, int& largeur);
 	double acc = 0.0;
 	double loss = 0.0;

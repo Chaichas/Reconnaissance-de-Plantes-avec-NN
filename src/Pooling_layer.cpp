@@ -1,4 +1,4 @@
-#include "include/Pooling_layer.h"
+#include "../include/Pooling_layer.h"
 #include <algorithm> //for using max elements
 #include <cmath>
 
