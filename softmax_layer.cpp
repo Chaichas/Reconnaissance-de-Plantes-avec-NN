@@ -1,6 +1,6 @@
-﻿#include "softmax_layer.h"
+﻿#include "include/softmax_layer.h"
 #include <algorithm>
-#include "Convolution_layer.h"
+#include "include/Convolution_layer.h"
 
 void Softmax_layer::Flatten(const std::vector<std::vector<double>>& img_input, int d)
 {

@@ -7,7 +7,7 @@
 //For back_inserter
 #include <iterator>
 
-#include "Output.h"
+#include "include/Output.h"
 
 
 
@@ -140,8 +140,8 @@ void output::Testing_data()
         std::vector<double> out = prediction(labels_test[label_i], hauteur, largeur);
 
 
-        runningAcc += loss;
-        runningLoss += acc;
+        runningAcc += acc;
+        runningLoss += loss;
 
         int predIndex = std::distance(out.begin(), std::max_element(out.begin(), out.end()));
 
