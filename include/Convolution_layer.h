@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <vector> //vector
+#include<mpi.h>
 #include <chrono> //time
 #include <cmath> //math
 #include <random> //random
@@ -40,10 +41,11 @@ public:
 private:
 
 	std::vector<std::vector<double>> ConvMat; //convolution matrix filled with values
-
+	std::vector<std::vector<double>> proc_ConvMat; // temporary convolution matrix filled by only one proc
+	
 	std::vector<std::vector<double>> filter_matrix; //Filter matrix filled with values
 
-	int ConvMat_height, ConvMat_width; //con matrix intialization
+	int ConvMat_height, ConvMat_width, proc_ConvMat_height; //con matrix intialization
 
 	void convolution_process(const std::vector<double>& pixel, int idx); //multiplication and summation pixel value * filter value
 
