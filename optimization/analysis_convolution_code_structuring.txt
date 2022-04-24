@@ -1,0 +1,358 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 37.17      2.13     2.13 217175159     0.00     0.00  void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&)
+ 15.88      3.04     0.91     6038     0.00     0.00  Convolution_layer::convolution_parameters(std::vector<double, std::allocator<double> > const&, int, int)
+ 13.79      3.83     0.79     3019     0.00     0.00  Softmax_layer::BackPropagation(std::vector<double, std::allocator<double> > const&, double)
+ 10.65      4.44     0.61     6038     0.00     0.00  Softmax_layer::Softmax_start(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int)
+  7.50      4.87     0.43     3019     0.00     0.00  Pooling_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >)
+  5.93      5.21     0.34     6038     0.00     0.00  Pooling_layer::Pooling_parameters(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int)
+  3.32      5.40     0.19     3019     0.00     0.00  Convolution_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >, double)
+  2.79      5.56     0.16   117767     0.00     0.00  void std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_realloc_insert<std::vector<double, std::allocator<double> > const&>(__gnu_cxx::__normal_iterator<std::vector<double, std::allocator<double> >*, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > >, std::vector<double, std::allocator<double> > const&)
+  1.75      5.66     0.10     6038     0.00     0.00  Data::create_canal(cv::Mat*)
+  1.22      5.73     0.07                             _init
+  0.00      5.73     0.00   313976     0.00     0.00  void std::vector<double, std::allocator<double> >::_M_realloc_insert<double>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double&&)
+  0.00      5.73     0.00    54342     0.00     0.00  Data::loadImage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int&, int&)
+  0.00      5.73     0.00    45311     0.00     0.00  void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&)
+  0.00      5.73     0.00    18114     0.00     0.00  std::vector<double, std::allocator<double> >::_M_default_append(unsigned long)
+  0.00      5.73     0.00     6038     0.00     0.00  Pooling_layer::Hidden(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&)
+  0.00      5.73     0.00     6038     0.00     0.00  Softmax_layer::Hidden()
+  0.00      5.73     0.00     6038     0.00     0.00  Convolution_layer::Hidden(std::vector<double, std::allocator<double> > const&)
+  0.00      5.73     0.00     6038     0.00     0.00  output::prediction(int, int&, int&)
+  0.00      5.73     0.00     6038     0.00     0.00  Data::get_fusion_canal() const
+  0.00      5.73     0.00     6038     0.00     0.00  std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_default_append(unsigned long)
+  0.00      5.73     0.00       26     0.00     0.00  void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00      5.73     0.00        2     0.00     0.00  Convolution_layer::random_weights(double, double, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >&)
+  0.00      5.73     0.00        2     0.00     0.00  output::Process_directory(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<int, std::allocator<int> >&)
+  0.00      5.73     0.00        2     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  0.00      5.73     0.00        2     0.00     0.00  frame_dummy
+  0.00      5.73     0.00        1     0.00     0.00  Pooling_layer::Pooling_layer()
+  0.00      5.73     0.00        1     0.00     0.00  Pooling_layer::~Pooling_layer()
+  0.00      5.73     0.00        1     0.00     0.00  Convolution_layer::Convolution_layer()
+  0.00      5.73     0.00        1     0.00     0.00  Data::Data()
+  0.00      5.73     0.00        1     0.00     0.00  Data::~Data()
+  0.00      5.73     0.00        1     0.00     1.40  output::Testing_data()
+  0.00      5.73     0.00        1     0.00     4.26  output::Training_data(int, double)
+  0.00      5.73     0.00        1     0.00     0.00  output::output(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >)
+  0.00      5.73     0.00        1     0.00     0.00  output::~output()
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2022 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 4 byte(s) for 0.17% of 5.73 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     98.8    0.00    5.66                 main [1]
+                0.00    4.26       1/1           output::Training_data(int, double) [2]
+                0.00    1.40       1/1           output::Testing_data() [6]
+                0.00    0.00       2/2           std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [33]
+                0.00    0.00       2/2           frame_dummy [18]
+                0.00    0.00       1/1           output::output(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [39]
+                0.00    0.00       1/1           output::~output() [40]
+-----------------------------------------------
+                0.00    4.26       1/1           main [1]
+[2]     74.4    0.00    4.26       1         output::Training_data(int, double) [2]
+                0.79    0.62    3019/3019        Softmax_layer::BackPropagation(std::vector<double, std::allocator<double> > const&, double) [5]
+                0.00    1.39    3019/6038        output::prediction(int, int&, int&) [3]
+                0.43    0.43    3019/3019        Pooling_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >) [9]
+                0.19    0.41    3019/3019        Convolution_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >, double) [11]
+                0.00    0.01    3019/54342       Data::loadImage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int&, int&) [13]
+                0.00    0.00       1/2           output::Process_directory(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<int, std::allocator<int> >&) [32]
+-----------------------------------------------
+                0.00    1.39    3019/6038        output::Testing_data() [6]
+                0.00    1.39    3019/6038        output::Training_data(int, double) [2]
+[3]     48.5    0.00    2.78    6038         output::prediction(int, int&, int&) [3]
+                0.34    0.82    6038/6038        Pooling_layer::Pooling_parameters(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [7]
+                0.91    0.01    6038/6038        Convolution_layer::convolution_parameters(std::vector<double, std::allocator<double> > const&, int, int) [8]
+                0.61    0.00    6038/6038        Softmax_layer::Softmax_start(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [10]
+                0.00    0.09    6038/6038        Pooling_layer::Hidden(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&) [15]
+                0.00    0.00    6038/6038        Data::get_fusion_canal() const [29]
+                0.00    0.00    6038/6038        Convolution_layer::Hidden(std::vector<double, std::allocator<double> > const&) [28]
+-----------------------------------------------
+                0.00    0.00      13/217175159     Data::create_canal(cv::Mat*) [14]
+                0.00    0.00   18472/217175159     Convolution_layer::random_weights(double, double, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >&) [17]
+                0.00    0.00   48308/217175159     Softmax_layer::Softmax_start(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [10]
+                0.01    0.00  627952/217175159     Convolution_layer::convolution_parameters(std::vector<double, std::allocator<double> > const&, int, int) [8]
+                0.34    0.00 34778880/217175159     Convolution_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >, double) [11]
+                0.41    0.00 41734656/217175159     Pooling_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >) [9]
+                0.55    0.00 55966222/217175159     Softmax_layer::BackPropagation(std::vector<double, std::allocator<double> > const&, double) [5]
+                0.82    0.00 84000656/217175159     Pooling_layer::Pooling_parameters(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [7]
+[4]     37.2    2.13    0.00 217175159         void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [4]
+-----------------------------------------------
+                0.79    0.62    3019/3019        output::Training_data(int, double) [2]
+[5]     24.7    0.79    0.62    3019         Softmax_layer::BackPropagation(std::vector<double, std::allocator<double> > const&, double) [5]
+                0.55    0.00 55966222/217175159     void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [4]
+                0.07    0.00   54342/117767      void std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_realloc_insert<std::vector<double, std::allocator<double> > const&>(__gnu_cxx::__normal_iterator<std::vector<double, std::allocator<double> >*, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > >, std::vector<double, std::allocator<double> > const&) [12]
+                0.00    0.00   45285/45311       void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&) [25]
+-----------------------------------------------
+                0.00    1.40       1/1           main [1]
+[6]     24.4    0.00    1.40       1         output::Testing_data() [6]
+                0.00    1.39    3019/6038        output::prediction(int, int&, int&) [3]
+                0.00    0.01    3019/54342       Data::loadImage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int&, int&) [13]
+                0.00    0.00       1/2           output::Process_directory(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<int, std::allocator<int> >&) [32]
+-----------------------------------------------
+                0.34    0.82    6038/6038        output::prediction(int, int&, int&) [3]
+[7]     20.3    0.34    0.82    6038         Pooling_layer::Pooling_parameters(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [7]
+                0.82    0.00 84000656/217175159     void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [4]
+                0.00    0.00       4/117767      void std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_realloc_insert<std::vector<double, std::allocator<double> > const&>(__gnu_cxx::__normal_iterator<std::vector<double, std::allocator<double> >*, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > >, std::vector<double, std::allocator<double> > const&) [12]
+-----------------------------------------------
+                0.91    0.01    6038/6038        output::prediction(int, int&, int&) [3]
+[8]     16.0    0.91    0.01    6038         Convolution_layer::convolution_parameters(std::vector<double, std::allocator<double> > const&, int, int) [8]
+                0.01    0.00  627952/217175159     void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [4]
+                0.00    0.00       1/2           Convolution_layer::random_weights(double, double, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >&) [17]
+                0.00    0.00       4/117767      void std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_realloc_insert<std::vector<double, std::allocator<double> > const&>(__gnu_cxx::__normal_iterator<std::vector<double, std::allocator<double> >*, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > >, std::vector<double, std::allocator<double> > const&) [12]
+-----------------------------------------------
+                0.43    0.43    3019/3019        output::Training_data(int, double) [2]
+[9]     14.9    0.43    0.43    3019         Pooling_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >) [9]
+                0.41    0.00 41734656/217175159     void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [4]
+                0.02    0.00   12076/117767      void std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_realloc_insert<std::vector<double, std::allocator<double> > const&>(__gnu_cxx::__normal_iterator<std::vector<double, std::allocator<double> >*, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > >, std::vector<double, std::allocator<double> > const&) [12]
+                0.00    0.00  313976/313976      void std::vector<double, std::allocator<double> >::_M_realloc_insert<double>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double&&) [24]
+-----------------------------------------------
+                0.61    0.00    6038/6038        output::prediction(int, int&, int&) [3]
+[10]    10.7    0.61    0.00    6038         Softmax_layer::Softmax_start(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [10]
+                0.00    0.00   48308/217175159     void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [4]
+                0.00    0.00       1/2           Convolution_layer::random_weights(double, double, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >&) [17]
+                0.00    0.00    6038/6038        Softmax_layer::Hidden() [27]
+-----------------------------------------------
+                0.19    0.41    3019/3019        output::Training_data(int, double) [2]
+[11]    10.5    0.19    0.41    3019         Convolution_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >, double) [11]
+                0.34    0.00 34778880/217175159     void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [4]
+                0.07    0.00   51323/117767      void std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_realloc_insert<std::vector<double, std::allocator<double> > const&>(__gnu_cxx::__normal_iterator<std::vector<double, std::allocator<double> >*, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > >, std::vector<double, std::allocator<double> > const&) [12]
+-----------------------------------------------
+                0.00    0.00       4/117767      Convolution_layer::convolution_parameters(std::vector<double, std::allocator<double> > const&, int, int) [8]
+                0.00    0.00       4/117767      Pooling_layer::Pooling_parameters(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [7]
+                0.00    0.00      18/117767      Convolution_layer::random_weights(double, double, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >&) [17]
+                0.02    0.00   12076/117767      Pooling_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >) [9]
+                0.07    0.00   51323/117767      Convolution_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >, double) [11]
+                0.07    0.00   54342/117767      Softmax_layer::BackPropagation(std::vector<double, std::allocator<double> > const&, double) [5]
+[12]     2.8    0.16    0.00  117767         void std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_realloc_insert<std::vector<double, std::allocator<double> > const&>(__gnu_cxx::__normal_iterator<std::vector<double, std::allocator<double> >*, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > >, std::vector<double, std::allocator<double> > const&) [12]
+-----------------------------------------------
+                0.00    0.01    3019/54342       output::Testing_data() [6]
+                0.00    0.01    3019/54342       output::Training_data(int, double) [2]
+                0.00    0.09   48304/54342       Pooling_layer::Hidden(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&) [15]
+[13]     1.7    0.00    0.10   54342         Data::loadImage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int&, int&) [13]
+                0.10    0.00    6038/6038        Data::create_canal(cv::Mat*) [14]
+-----------------------------------------------
+                0.10    0.00    6038/6038        Data::loadImage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int&, int&) [13]
+[14]     1.7    0.10    0.00    6038         Data::create_canal(cv::Mat*) [14]
+                0.00    0.00      13/217175159     void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [4]
+-----------------------------------------------
+                0.00    0.09    6038/6038        output::prediction(int, int&, int&) [3]
+[15]     1.6    0.00    0.09    6038         Pooling_layer::Hidden(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&) [15]
+                0.00    0.09   48304/54342       Data::loadImage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int&, int&) [13]
+                0.00    0.00    6038/6038        std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_default_append(unsigned long) [30]
+-----------------------------------------------
+                                                 <spontaneous>
+[16]     1.2    0.07    0.00                 _init [16]
+-----------------------------------------------
+                0.00    0.00       1/2           Convolution_layer::convolution_parameters(std::vector<double, std::allocator<double> > const&, int, int) [8]
+                0.00    0.00       1/2           Softmax_layer::Softmax_start(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [10]
+[17]     0.0    0.00    0.00       2         Convolution_layer::random_weights(double, double, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >&) [17]
+                0.00    0.00   18472/217175159     void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [4]
+                0.00    0.00      18/117767      void std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_realloc_insert<std::vector<double, std::allocator<double> > const&>(__gnu_cxx::__normal_iterator<std::vector<double, std::allocator<double> >*, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > >, std::vector<double, std::allocator<double> > const&) [12]
+-----------------------------------------------
+                0.00    0.00       2/2           main [1]
+[18]     0.0    0.00    0.00       2         frame_dummy [18]
+-----------------------------------------------
+                0.00    0.00  313976/313976      Pooling_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >) [9]
+[24]     0.0    0.00    0.00  313976         void std::vector<double, std::allocator<double> >::_M_realloc_insert<double>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double&&) [24]
+-----------------------------------------------
+                0.00    0.00      26/45311       output::Process_directory(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<int, std::allocator<int> >&) [32]
+                0.00    0.00   45285/45311       Softmax_layer::BackPropagation(std::vector<double, std::allocator<double> > const&, double) [5]
+[25]     0.0    0.00    0.00   45311         void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&) [25]
+-----------------------------------------------
+                0.00    0.00    6038/18114       Convolution_layer::Hidden(std::vector<double, std::allocator<double> > const&) [28]
+                0.00    0.00   12076/18114       Softmax_layer::Hidden() [27]
+[26]     0.0    0.00    0.00   18114         std::vector<double, std::allocator<double> >::_M_default_append(unsigned long) [26]
+-----------------------------------------------
+                0.00    0.00    6038/6038        Softmax_layer::Softmax_start(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [10]
+[27]     0.0    0.00    0.00    6038         Softmax_layer::Hidden() [27]
+                0.00    0.00   12076/18114       std::vector<double, std::allocator<double> >::_M_default_append(unsigned long) [26]
+-----------------------------------------------
+                0.00    0.00    6038/6038        output::prediction(int, int&, int&) [3]
+[28]     0.0    0.00    0.00    6038         Convolution_layer::Hidden(std::vector<double, std::allocator<double> > const&) [28]
+                0.00    0.00    6038/18114       std::vector<double, std::allocator<double> >::_M_default_append(unsigned long) [26]
+-----------------------------------------------
+                0.00    0.00    6038/6038        output::prediction(int, int&, int&) [3]
+[29]     0.0    0.00    0.00    6038         Data::get_fusion_canal() const [29]
+-----------------------------------------------
+                0.00    0.00    6038/6038        Pooling_layer::Hidden(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&) [15]
+[30]     0.0    0.00    0.00    6038         std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_default_append(unsigned long) [30]
+-----------------------------------------------
+                0.00    0.00      26/26          output::Process_directory(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<int, std::allocator<int> >&) [32]
+[31]     0.0    0.00    0.00      26         void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [31]
+-----------------------------------------------
+                0.00    0.00       1/2           output::Testing_data() [6]
+                0.00    0.00       1/2           output::Training_data(int, double) [2]
+[32]     0.0    0.00    0.00       2         output::Process_directory(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<int, std::allocator<int> >&) [32]
+                0.00    0.00      26/26          void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [31]
+                0.00    0.00      26/45311       void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&) [25]
+-----------------------------------------------
+                0.00    0.00       2/2           main [1]
+[33]     0.0    0.00    0.00       2         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [33]
+-----------------------------------------------
+                0.00    0.00       1/1           output::output(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [39]
+[34]     0.0    0.00    0.00       1         Pooling_layer::Pooling_layer() [34]
+-----------------------------------------------
+                0.00    0.00       1/1           output::~output() [40]
+[35]     0.0    0.00    0.00       1         Pooling_layer::~Pooling_layer() [35]
+-----------------------------------------------
+                0.00    0.00       1/1           output::output(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [39]
+[36]     0.0    0.00    0.00       1         Convolution_layer::Convolution_layer() [36]
+-----------------------------------------------
+                0.00    0.00       1/1           output::output(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [39]
+[37]     0.0    0.00    0.00       1         Data::Data() [37]
+-----------------------------------------------
+                0.00    0.00       1/1           output::~output() [40]
+[38]     0.0    0.00    0.00       1         Data::~Data() [38]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[39]     0.0    0.00    0.00       1         output::output(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [39]
+                0.00    0.00       1/1           Data::Data() [37]
+                0.00    0.00       1/1           Convolution_layer::Convolution_layer() [36]
+                0.00    0.00       1/1           Pooling_layer::Pooling_layer() [34]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[40]     0.0    0.00    0.00       1         output::~output() [40]
+                0.00    0.00       1/1           Data::~Data() [38]
+                0.00    0.00       1/1           Pooling_layer::~Pooling_layer() [35]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2022 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+   [9] Pooling_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >) [36] Convolution_layer::Convolution_layer() [31] void std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_realloc_insert<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+   [7] Pooling_layer::Pooling_parameters(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [14] Data::create_canal(cv::Mat*) [30] std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_default_append(unsigned long)
+  [15] Pooling_layer::Hidden(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&) [13] Data::loadImage(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int&, int&) [12] void std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >::_M_realloc_insert<std::vector<double, std::allocator<double> > const&>(__gnu_cxx::__normal_iterator<std::vector<double, std::allocator<double> >*, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > >, std::vector<double, std::allocator<double> > const&)
+  [34] Pooling_layer::Pooling_layer() [37] Data::Data()   [26] std::vector<double, std::allocator<double> >::_M_default_append(unsigned long)
+  [35] Pooling_layer::~Pooling_layer() [38] Data::~Data()  [4] void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&)
+  [10] Softmax_layer::Softmax_start(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > > const&, int, int) [3] output::prediction(int, int&, int&) [24] void std::vector<double, std::allocator<double> >::_M_realloc_insert<double>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double&&)
+   [5] Softmax_layer::BackPropagation(std::vector<double, std::allocator<double> > const&, double) [6] output::Testing_data() [25] void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&)
+  [27] Softmax_layer::Hidden() [2] output::Training_data(int, double) [33] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  [17] Convolution_layer::random_weights(double, double, std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >&) [32] output::Process_directory(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<int, std::allocator<int> >&) [16] _init
+  [11] Convolution_layer::BackPropagation(std::vector<std::vector<double, std::allocator<double> >, std::allocator<std::vector<double, std::allocator<double> > > >, double) [39] output::output(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) [18] frame_dummy
+   [8] Convolution_layer::convolution_parameters(std::vector<double, std::allocator<double> > const&, int, int) [40] output::~output()
+  [28] Convolution_layer::Hidden(std::vector<double, std::allocator<double> > const&) [29] Data::get_fusion_canal() const

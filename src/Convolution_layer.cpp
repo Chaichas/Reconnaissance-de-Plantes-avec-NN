@@ -29,11 +29,11 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     //initialization of the filter weights by random values (class Random_weights)
     if (initialization) {
         random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
-
+        double dim_filter_r = 1.0 / (double)(filter_height * filter_width);
         //normalizing wight values, Ref3
         for (size_t ii = 0; ii < filter_number; ii++) { //loop on number of filters
             for (size_t jj = 0; jj < (filter_height * filter_width); jj++) { //loop on total number of weights within each filter
-                filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] / (double)(filter_height * filter_width); //normalized filter
+                filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] * dim_filter_r; //normalized filter
             }
         }
         initialization = false;
