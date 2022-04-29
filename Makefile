@@ -6,10 +6,10 @@ TARGET = CNN
 CC = g++ 
 
 # Compiling flags
-CFLAGS = -O3 -march=native -Wall
+CFLAGS = -Ofast -march=native -Wall
 
 # linking flags & libraries
-LFLAGS = -I/usr/include/opencv4/ -lopencv_core -lopencv_videoio -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lgomp 
+LFLAGS = -I/usr/include/opencv4/ -fopenmp -lopencv_core -lopencv_videoio -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lgomp 
 
 # Proper directories 
 SRCDIR = src
