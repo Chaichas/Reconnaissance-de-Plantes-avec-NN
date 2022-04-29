@@ -6,7 +6,7 @@ TARGET = CNN
 CC = g++ 
 
 # Compiling flags
-CFLAGS = -Ofast -march=native -Wall
+CFLAGS = -Ofast -march=native -funroll-loops -finline-functions -Wall
 
 # linking flags & libraries
 LFLAGS = -I/usr/include/opencv4/ -fopenmp -lopencv_core -lopencv_videoio -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lgomp 
