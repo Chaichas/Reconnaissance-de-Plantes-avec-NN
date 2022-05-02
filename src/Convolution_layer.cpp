@@ -26,103 +26,30 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride) + 1; //output convolution matrix height
     ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride) + 1; //output convolution matrix width
 
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    MPI_Comm_size(MPI_COMM_WORLD,&size);
-    
-    filter_matrix.resize(filter_number, std::vector<double> (filter_height*filter_width));
-
-    std::vector<double> simplified_filter (filter_number*filter_height*filter_width);
-	if(rank==0) { // le filtre 
     //initialization of the filter weights by random values (class Random_weights)
-		if (initialization) {
-			random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
-
-			//normalizing wight values, Ref3
-			for (size_t ii = 0; ii < filter_number; ii++) { //loop on number of filters
-				for (size_t jj = 0; jj < (filter_height * filter_width); jj++) { //loop on total number of weights within each filter
-					filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] / (double)(filter_height * filter_width); //normalized filter
-				}
-			}
-			initialization = false;
-		}
-		// transformation de filter_matrix en un vecteur 1d pour un partage plus facile
-		size_t idx = 0;
-		for (size_t ii = 0; ii < filter_number; ii++) {
-			for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
-				simplified_filter[idx] = filter_matrix[ii][jj];
-                idx++;
-			}
-		}
-	}
-	MPI_Bcast(&simplified_filter[0],filter_number*filter_height*filter_width,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    //std::fprintf(stderr,"Iam rank: blala %d, %ld \n",rank,simplified_filter.size());
-	// retransformation du vecteur en matrice de filtre
-	for (size_t ii = 0; ii < filter_number; ii++) {
-		for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
-			filter_matrix[ii][jj] = simplified_filter[ii*filter_height*filter_width+jj];
-		}
-	}
+    if (initialization) {
+        random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
+        double dim_filter_r = 1.0 / (double)(filter_height * filter_width);
+        //normalizing wight values, Ref3
+        for (size_t ii = 0; ii < filter_number; ii++) { //loop on number of filters
+            for (size_t jj = 0; jj < (filter_height * filter_width); jj++) { //loop on total number of weights within each filter
+                filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] * dim_filter_r; //normalized filter
+            }
+        }
+        initialization = false;
+    }
 
     ConvMat.clear();
 
-	// line start and line end for each proc
-	int ls_rank = 1;
-	int le_rank = 1;
-	//optimisation de repartition entre procs (load distribution)
-	if (rank < ConvMat_height%size)
-	{
-		ls_rank += (ConvMat_height/size)*rank + rank;
-		le_rank += (ConvMat_height/size)*(rank+1) + rank + 1;
-	}
-	else
-	{
-		ls_rank += (ConvMat_height/size)*rank + ConvMat_height%size;
-		le_rank += (ConvMat_height/size)*(rank+1) + ConvMat_height%size;
-	}
-
-	proc_ConvMat_height = le_rank-ls_rank;
-	std::vector<double> vec_pixel_rank (inputImage_width*(proc_ConvMat_height+2));
-	std::copy(&vec_pixel[inputImage_width*(ls_rank-1)], &vec_pixel[inputImage_width*(le_rank+1)], vec_pixel_rank.begin());
-
-	// distribution de l'image sur les différent procs à partir du rang 0
-	// if(rank==0) {
-		// for(i_rank=0; i<size; i_rank++) {
-			// MPI_SEND(&vec_pixel[], MPI_DOUBLE, i_rank, 0, MPI_COMM_WORLD);
-		// }
-	// }
-	// reception d'une partie de l'image
-	// std::vector<double> vec_pixel_rank;
-	// vec_pixel_rank.resize();
-	// MPI_RECV(&vec_pixel_rank[0], , 0, MPI_COMM_WORLD, &status);
-	
     //Convolution procedure for filter_number
-	for (size_t ii = 0; ii < filter_number; ii++) {
-		convolution_process(vec_pixel_rank, ii);
-	}
-	
-	int *counts = new int[size];
-	int *displ = new int[size];
-	displ[0] = 0;
-	for (int i_rank=0; i_rank<size; i_rank++) {
-		if (i_rank < ConvMat_height%size) {
-			counts[i_rank] = (ConvMat_height/size)+1;
-		}
-		else {
-			counts[i_rank] = ConvMat_height/size;
-		}
-        counts[i_rank] *= ConvMat_width;
-		if (i_rank > 0) displ[i_rank] = displ[i_rank-1]+counts[i_rank-1];
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
-	std::vector<double> filter_proc_ConvMat (ConvMat_width*proc_ConvMat_height);
-	std::vector<double> global_vec (ConvMat_height*ConvMat_width);
-	for (size_t ii = 0; ii < filter_number; ii++) {
-		std::copy(&proc_ConvMat[ii][0], &proc_ConvMat[ii][ConvMat_width*proc_ConvMat_height], filter_proc_ConvMat.begin());
-        //std::fprintf(stderr,"I am rank %d, counts : %d, displ : %d, proc_ConvMat_height : %d\n",rank,counts[0],displ[0],proc_ConvMat_height);
-		MPI_Allgatherv(&filter_proc_ConvMat[0], filter_proc_ConvMat.size(), MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD);
-		ConvMat.push_back(global_vec);
-	}
+    convolution_process(vec_pixel, 0); //1st filter
+    convolution_process(vec_pixel, 1); //2sd filter
+    convolution_process(vec_pixel, 2); //3rd filter
+    convolution_process(vec_pixel, 3); //4th filter
+    convolution_process(vec_pixel, 4); //5th filter
+    convolution_process(vec_pixel, 5); //6th filter
+    convolution_process(vec_pixel, 6); //7th filter
+    convolution_process(vec_pixel, 7); //8th filter
 
     Hidden(vec_pixel); //hiding the last input
 }
@@ -130,7 +57,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx) {
     std::vector<double> vec;
 
-    for (int ii = 0; ii < proc_ConvMat_height; ii++) { //loop on the height of the convolution matrix
+    for (int ii = 0; ii < ConvMat_height; ii++) { //loop on the height of the convolution matrix
         for (int jj = 0; jj < ConvMat_width; jj++) { //loop on the width of the convolution matrix
 
             double sum = 0; //initialization of the summation
@@ -147,7 +74,7 @@ void Convolution_layer::convolution_process(const std::vector<double>& pixel, in
             vec.push_back(sum); //storing sum value in vec		
         }
     }
-    proc_ConvMat.push_back(vec); //storing vec value in ConvMat
+    ConvMat.push_back(vec); //storing vec value in ConvMat
 }
 
 void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_out, double learn_rate)
@@ -212,19 +139,20 @@ void Convolution_layer::random_weights(double nb_filters, double nb_weights, std
     std::default_random_engine generator(seed); //random generator engine
     std::normal_distribution<double> distribution(0.0, 1.0); //( result_type mean = 0.0, result_type stddev = 1.0 )
 
+
     for (int ii = 0; ii < nb_filters; ii++) { //loop on the total number of filters
 
-        //std::vector<double> one_filter (nb_weights); //array initialisation with no defined size
+        std::vector<double> one_filter; //array initialisation with no defined size
 
         for (int jj = 0; jj < nb_weights; jj++) { //nb_weights = filter height * filter width
 
             double number = (distribution(generator)); //random number from a random generator engine, Ref2
 
-            filter_matrix[ii][jj] = number; // Filling of 1 filter with random values
+            one_filter.push_back(number); // Filling of 1 filter with random values
 
         }
 
-        //filter_matrix[ii] = one_filter; //Filling of all filters with random values
+        filter_matrix.push_back(one_filter); //Filling of all filters with random values
     }
 
 }
