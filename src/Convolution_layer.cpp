@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../include/Convolution_layer.h"
 #include<vector>
+#include<omp.h>
 
 Convolution_layer::Convolution_layer() {} //constructor
 
@@ -23,6 +24,8 @@ void Convolution_layer::Hidden(const std::vector<double>& vect) { //caching
 //in convolution we use the whole volume of the input matrix n*n*channels(RGB, 3)
 void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pixel, int inputImage_height, int inputImage_width) {
 
+    size_t ii,jj;
+  
     ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride) + 1; //output convolution matrix height
     ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride) + 1; //output convolution matrix width
 
@@ -31,8 +34,9 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
         random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
 
         //normalizing wight values, Ref3
-        for (size_t ii = 0; ii < filter_number; ii++) { //loop on number of filters
-            for (size_t jj = 0; jj < (filter_height * filter_width); jj++) { //loop on total number of weights within each filter
+        #pragma omp parallel for private(jj)
+        for ( ii = 0; ii < filter_number; ii++) { //loop on number of filters
+            for (jj = 0; jj < (filter_height * filter_width); jj++) { //loop on total number of weights within each filter
                 filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] / (double)(filter_height * filter_width); //normalized filter
             }
         }
@@ -61,7 +65,7 @@ void Convolution_layer::convolution_process(const std::vector<double>& pixel, in
         for (int jj = 0; jj < ConvMat_width; jj++) { //loop on the width of the convolution matrix
 
             double sum = 0; //initialization of the summation
-
+           
             for (int kk = 0; kk < filter_height; kk++) { //loop on the height of the filter
                 for (int hh = 0; hh < filter_width; hh++) { //loop on the width of the filter
 
@@ -109,6 +113,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
 
     //Loop for iterating d_L_d_out(last output of this layer)
     int counter = 0;
+    #pragma omp for schedule(dynamic)
     for (int i = 0; i < ConvMat_height; i++) {
         for (int j = 0; j < ConvMat_width; j++) {
             //Loop for filters number
@@ -122,7 +127,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
             counter++;
         }
     }
-
+    #pragma omp for schedule(dynamic)
     for (size_t i = 0; i < filter_number; i++) {
         for (size_t j = 0; j < 3; j++) {
             for (size_t k = 0; k < 3; k++) {

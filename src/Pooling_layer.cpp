@@ -50,7 +50,7 @@ void Pooling_layer::Pooling_parameters(const std::vector<std::vector<double>>& v
 void Pooling_layer::Pooling_process(const std::vector<std::vector<double>>& pixel, int idx) {
 
     std::vector<double> vec; //vector vec
-
+    #pragma omp for schedule(dynamic)
     for (int ii = 0; ii < (Pooling_size * Pooling_height); ii += Pooling_size) {
         for (int jj = 0; jj < (Pooling_size * Pooling_width); jj += Pooling_size) {
 
@@ -80,7 +80,7 @@ std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std:
 
 	//std::vector<std::vector<double>> represents a 2D matrix
 	std::vector<std::vector<double>> dloss_dx; //x represents the inputs
-
+        #pragma omp for schedule(dynamic)
 	for (size_t ii = 0; ii < Filter_number; ii++) {
 
 		std::vector<double> vec; //initializing vec
