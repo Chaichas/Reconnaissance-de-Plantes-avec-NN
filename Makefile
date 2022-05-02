@@ -3,13 +3,15 @@
 # project name
 TARGET = CNN
 
-CC = g++ 
+CC=mpiCC
 
 # Compiling flags
-CFLAGS = -O3 -march=native -Wall -mavx
+CFLAGS = -O3 -march=native -Wall -mavx -g
+#CFLAGS = -O3
 
 # linking flags & libraries
-LFLAGS = -I/usr/include/opencv4/ -lopencv_core -lopencv_videoio -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lgomp 
+LFLAGS = -I/usr/include/opencv4/ -lopencv_core -lopencv_videoio -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs
+#LFLAGS = -I/usr/include/opencv4/ -lopencv_core -lopencv_videoio -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs -lgomp  
 
 # Proper directories 
 SRCDIR = src
@@ -21,8 +23,8 @@ all: program
 program : main convolution_layer Data Pooling_layer output softmax_layer
 	$(CC)  $(CFLAGS) -o $@ $^  $(LFLAGS)
 
-Run_program: program
-	./program
+#Run_program: program
+#	./program
 
 convolution_layer: ${SRCDIR}/Convolution_layer.cpp ${INCDIR}/Convolution_layer.h
 	$(CC)  $(CFLAGS) -c $< -o $@  $(LFLAGS)
