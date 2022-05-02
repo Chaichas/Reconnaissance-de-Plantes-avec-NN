@@ -30,6 +30,8 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&size);
     
+    filter_matrix.resize(filter_number, std::vector<double> (filter_height*filter_width));
+
     std::vector<double> simplified_filter (filter_number*filter_height*filter_width);
 	if(rank==0) { // le filtre 
     //initialization of the filter weights by random values (class Random_weights)
@@ -48,15 +50,17 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 		size_t idx = 0;
 		for (size_t ii = 0; ii < filter_number; ii++) {
 			for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
-				simplified_filter.push_back(filter_matrix[ii][jj]);
+				simplified_filter[idx] = filter_matrix[ii][jj];
+                idx++;
 			}
 		}
-	}	
+	}
 	MPI_Bcast(&simplified_filter[0],filter_number*filter_height*filter_width,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    //std::fprintf(stderr,"Iam rank: blala %d, %ld \n",rank,simplified_filter.size());
 	// retransformation du vecteur en matrice de filtre
 	for (size_t ii = 0; ii < filter_number; ii++) {
 		for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
-			filter_matrix[ii][jj] = simplified_filter[ii*filter_number+jj];
+			filter_matrix[ii][jj] = simplified_filter[ii*filter_height*filter_width+jj];
 		}
 	}
 
@@ -107,6 +111,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 		else {
 			counts[i_rank] = ConvMat_height/size;
 		}
+        counts[i_rank] *= ConvMat_width;
 		if (i_rank > 0) displ[i_rank] = displ[i_rank-1]+counts[i_rank-1];
 	}
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -114,7 +119,8 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 	std::vector<double> global_vec (ConvMat_height*ConvMat_width);
 	for (size_t ii = 0; ii < filter_number; ii++) {
 		std::copy(&proc_ConvMat[ii][0], &proc_ConvMat[ii][ConvMat_width*proc_ConvMat_height], filter_proc_ConvMat.begin());
-		MPI_Allgatherv(&filter_proc_ConvMat[0], filter_proc_ConvMat.size(), MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD)
+        //std::fprintf(stderr,"I am rank %d, counts : %d, displ : %d, proc_ConvMat_height : %d\n",rank,counts[0],displ[0],proc_ConvMat_height);
+		MPI_Allgatherv(&filter_proc_ConvMat[0], filter_proc_ConvMat.size(), MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD);
 		ConvMat.push_back(global_vec);
 	}
 
@@ -206,20 +212,19 @@ void Convolution_layer::random_weights(double nb_filters, double nb_weights, std
     std::default_random_engine generator(seed); //random generator engine
     std::normal_distribution<double> distribution(0.0, 1.0); //( result_type mean = 0.0, result_type stddev = 1.0 )
 
-
     for (int ii = 0; ii < nb_filters; ii++) { //loop on the total number of filters
 
-        std::vector<double> one_filter; //array initialisation with no defined size
+        //std::vector<double> one_filter (nb_weights); //array initialisation with no defined size
 
         for (int jj = 0; jj < nb_weights; jj++) { //nb_weights = filter height * filter width
 
             double number = (distribution(generator)); //random number from a random generator engine, Ref2
 
-            one_filter.push_back(number); // Filling of 1 filter with random values
+            filter_matrix[ii][jj] = number; // Filling of 1 filter with random values
 
         }
 
-        filter_matrix.push_back(one_filter); //Filling of all filters with random values
+        //filter_matrix[ii] = one_filter; //Filling of all filters with random values
     }
 
 }
