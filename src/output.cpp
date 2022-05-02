@@ -68,7 +68,12 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
 
 void output::Training_data(int numb_epoch, double alpha)
 {
-    std::cout << "--------------Start Training ----------" << '\n';
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Comm_size(MPI_COMM_WORLD,&size);
+
+    if(rank==0) 
+        std::cout << "--------------Start Training ----------" << '\n';
 
     std::vector<int> Labels;
     std::vector<std::string> training_files = output::Process_directory(m_trainPath, Labels);
@@ -78,7 +83,7 @@ void output::Training_data(int numb_epoch, double alpha)
 
         int label_i = 0;
         double runningAcc = 0.0, runningLoss = 0.0;
-
+        
         for (std::vector<std::string>::iterator it = training_files.begin(); it != training_files.end(); ++it)
         {
             std::string name = *it;
@@ -106,7 +111,8 @@ void output::Training_data(int numb_epoch, double alpha)
         label_i++;
 
         //Affichage de perte et de la precison pour chaque epoch 
-        std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc / label_i) * 100 << " %" << '\n';
+        if(rank == 0)
+            std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc / label_i) * 100 << " %" << '\n';
         runningLoss = 0.0;
         runningAcc = 0.0;
         it++;
@@ -117,10 +123,16 @@ void output::Training_data(int numb_epoch, double alpha)
 
 void output::Testing_data()
 {
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Comm_size(MPI_COMM_WORLD,&size);
+
     int label_i = 0;
     double runningAcc = 0.0, runningLoss = 0.0;
 
-    std::cout << "-----------------Testing Data -------------------" << '\n';
+    if(rank == 0)
+        std::cout << "-----------------Testing Data -------------------" << '\n';
 
     std::vector<int> labels_test;
     std::vector<std::string> testing_files = output::Process_directory(m_trainPath, labels_test);
@@ -150,16 +162,17 @@ void output::Testing_data()
     label_i++;
 
     int wrong = label_i - right;
-    std::cout << "--------------------------------Result of testing-------------------------" << '\n';
+    if(rank == 0) {
+        std::cout << "--------------------------------Result of testing-------------------------" << '\n';
 
-    std::cout << "Average Loss" << runningLoss / label_i << " , Accuracy " << '\n';
-    std::cout << "Accuracy " << (runningAcc / label_i) * 100 << " %." << '\n';
+        std::cout << "Average Loss" << runningLoss / label_i << " , Accuracy " << '\n';
+        std::cout << "Accuracy " << (runningAcc / label_i) * 100 << " %." << '\n';
 
-    std::cout << "---------------------------------------------------------------------------" << '\n';
-    std::cout << "Le nombre d'image de test est : " << label_i << '\n';
-    std::cout << "Le nombre d'image correctement predits : " << right << '\n';
-    std::cout << "Le nombre d'image non predits : " << wrong << '\n';
-
+        std::cout << "---------------------------------------------------------------------------" << '\n';
+        std::cout << "Le nombre d'image de test est : " << label_i << '\n';
+        std::cout << "Le nombre d'image correctement predits : " << right << '\n';
+        std::cout << "Le nombre d'image non predits : " << wrong << '\n';
+    }
 
 }
 
