@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../include/Convolution_layer.h"
 #include<vector>
+#include <mpi.h>
 
 Convolution_layer::Convolution_layer() {} //constructor
 
@@ -23,21 +24,47 @@ void Convolution_layer::Hidden(const std::vector<double>& vect) { //caching
 //in convolution we use the whole volume of the input matrix n*n*channels(RGB, 3)
 void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pixel, int inputImage_height, int inputImage_width) {
 
-    ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride) + 1; //output convolution matrix height
-    ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride) + 1; //output convolution matrix width
+    ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride_conv) + 1; //output convolution matrix height
+    ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride_conv) + 1; //output convolution matrix width
 
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Comm_size(MPI_COMM_WORLD,&size);
+    
+    filter_matrix.resize(filter_number, std::vector<double> (filter_height*filter_width));
+
+    std::vector<double> simplified_filter (filter_number*filter_height*filter_width);
+	if(rank==0) { // le filtre 
     //initialization of the filter weights by random values (class Random_weights)
-    if (initialization) {
-        random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
-        double dim_filter_r = 1.0 / (double)(filter_height * filter_width);
-        //normalizing wight values, Ref3
-        for (size_t ii = 0; ii < filter_number; ii++) { //loop on number of filters
-            for (size_t jj = 0; jj < (filter_height * filter_width); jj++) { //loop on total number of weights within each filter
-                filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] * dim_filter_r; //normalized filter
-            }
-        }
-        initialization = false;
-    }
+		if (initialization) {
+			random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
+
+			//normalizing wight values, Ref3
+			for (size_t ii = 0; ii < filter_number; ii++) { //loop on number of filters
+				for (size_t jj = 0; jj < (filter_height * filter_width); jj++) { //loop on total number of weights within each filter
+					filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] / (double)(filter_height * filter_width); //normalized filter
+				}
+			}
+			initialization = false;
+		}
+		// transformation de filter_matrix en un vecteur 1d pour un partage plus facile
+		size_t idx = 0;
+		for (size_t ii = 0; ii < filter_number; ii++) {
+			for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
+				simplified_filter[idx] = filter_matrix[ii][jj];
+                idx++;
+			}
+		}
+	}
+	MPI_Bcast(&simplified_filter[0],filter_number*filter_height*filter_width,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    //std::fprintf(stderr,"Iam rank: blala %d, %ld \n",rank,simplified_filter.size());
+	// retransformation du vecteur en matrice de filtre
+	for (size_t ii = 0; ii < filter_number; ii++) {
+		for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
+			filter_matrix[ii][jj] = simplified_filter[ii*filter_height*filter_width+jj];
+		}
+	}
+    MPI_Barrier(MPI_COMM_WORLD);
 
     ConvMat.clear();
 
@@ -131,7 +158,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
         }
     }
 }
-void Convolution_layer::random_weights(double nb_filters, double nb_weights, std::vector<std::vector<double>>& filter_matrix) {
+void Convolution_layer::random_weights(const int nb_filters, const int nb_weights, std::vector<std::vector<double>>& output_mat) {
 
     //construct a random generator engine from a time-based seed, Ref1
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); //time; system real time
@@ -142,17 +169,19 @@ void Convolution_layer::random_weights(double nb_filters, double nb_weights, std
 
     for (int ii = 0; ii < nb_filters; ii++) { //loop on the total number of filters
 
-        std::vector<double> one_filter; //array initialisation with no defined size
+        //std::vector<double> one_filter; //array initialisation with no defined size
 
         for (int jj = 0; jj < nb_weights; jj++) { //nb_weights = filter height * filter width
 
             double number = (distribution(generator)); //random number from a random generator engine, Ref2
 
-            one_filter.push_back(number); // Filling of 1 filter with random values
+            output_mat[ii][jj] = number;
+            //one_filter.push_back(number); // Filling of 1 filter with random values
 
         }
 
-        filter_matrix.push_back(one_filter); //Filling of all filters with random values
+        //output_mat.push_back(one_filter); //Filling of all filters with random values
+        //one_filter.clear();
     }
 
 }

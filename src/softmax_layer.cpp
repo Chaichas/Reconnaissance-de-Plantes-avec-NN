@@ -2,6 +2,8 @@
 #include <algorithm>
 #include "../include/Convolution_layer.h"
 
+using namespace std;
+
 void Softmax_layer::Flatten(const std::vector<std::vector<double>>& img_input, int d)
 {
     for (int i = 0; i < d; i++) {
@@ -29,7 +31,7 @@ void Softmax_layer::Hidden()
 
 std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<double>>& img_input, int img_height, int img_width)
 {
-    mLength = img_height * img_width * DEPTH;
+    mLength = img_height * img_width * DEPTH; 
     
 
     //Pour l'initialisation des poids et des biais en premiére exécution
@@ -37,8 +39,17 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
     {
         //Attribuez 0 à mBiases (la longueur de m_biase est de 5)
         mBiases.assign(ND, 0.0);
-
+        
         //Distribution de nombres aléatoires qui produit des valeurs  virgule flottante selon une distribution normale
+        //fprintf(stderr, "mLength %d ND %d mWeights_size %ld img_input_size %d img_input_1_size %d\n",  mLength, ND,mWeights.size(),img_input.size(),img_input[0].size());
+        mWeights.resize(mLength, std::vector<double> (ND)); // AM: initialisation de la taille du filtre suite à la modification de random_weights
+        
+       /* mWeights.resize(mLength);
+        std::for_each(mWeights.begin(), mWeights.end(), 
+                   std::bind2nd( std::mem_fun_ref( &std::vector<double>::resize ), ND ) );*/
+
+        
+        //fprintf(stderr, "mLength %d ND %d mWeights_size %ld \n",  mLength, ND,mWeights.size());
         Convolution_layer::random_weights(mLength, ND, mWeights);
 
 
@@ -50,10 +61,9 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
 
         pred = false;
     }
-
+   
     mFlatten.clear();//Effacer le dernier aplatissement de l'entrée
-    mTotal.clear();//Effacer la derniere prédiction 
-
+    mTotal.clear();//Effacer la derniere prédiction  
 
     Flatten(img_input, DEPTH);
 
@@ -94,8 +104,7 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
     Hidden(); //Créer le cache de la derniére entrée
 
     return vectPredictions;
-}
-
+} 
 
 
 
@@ -199,4 +208,3 @@ std::vector<std::vector<double>> Softmax_layer::BackPropagation(const std::vecto
     
     return dlossdinputs_shaped;
 }
-

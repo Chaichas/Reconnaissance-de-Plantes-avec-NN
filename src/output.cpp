@@ -7,6 +7,8 @@
 //For back_inserter
 #include <iterator>
 
+#include <mpi.h>
+
 #include "../include/Output.h"
 
 
@@ -42,13 +44,138 @@ output::~output()
 }
 */
 //-------------------------------------------Prediction Part------------------------------------------------------
+/*
+void output::transform_matrix_to_vector(std::vector<std::vector<double>> matrix, std::vector<double> simplified_vector, const int dim1, const int dim2) {
+    size_t idx = 0;
+    for (size_t ii = 0; ii < dim1; ii++) {
+        for (size_t jj = 0; jj < dim2; jj++) {
+            simplified_vector[idx] = matrix[ii][jj];
+            idx++;
+        }
+    }
+}
 
+void output::transform_vector_to_matrix(std::vector<std::vector<double>> matrix, std::vector<double> simplified_vector, const int dim1, const int dim2) {
+    for (size_t ii = 0; ii < dim1; ii++) {
+		for (size_t jj = 0; jj < dim2; jj++) {
+			filter_matrix[ii][jj] = simplified_vector[ii*dim2+jj];
+		}
+	}
+}
+*/
 std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
 {
-
+    int rank, comm_size;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Comm_size(MPI_COMM_WORLD,&comm_size);
 
     m_convol->convolution_parameters(m_image->get_fusion_canal(), hauteur, largeur);
     m_pool->Pooling_parameters(m_convol->getConvMat(), m_convol->getMatHeight(), m_convol->getMatWidth());
+
+// --------------------- fin du calcul parallel --------------- 
+
+	// rassemblement de l'output de max_pooling
+
+    int pool_size = m_pool->getPoolingHeight() * m_pool->getPoolingWidth();
+	int convol_size = m_convol->getMatHeight() * m_convol->getMatWidth();
+
+    //fprintf(stderr, "pool_size %d, convol_size %d, pHeight %d hauteur %d \n", pool_size, convol_size, m_pool->getPoolingHeight(),hauteur);
+
+    int counts[comm_size];
+    int displ[comm_size];
+    displ[0] = 0;
+    int global_size = 0;
+    int local_height;
+    m_pool->Pooling_height = 0;
+    for (int i_rank = 0; i_rank < comm_size; i_rank++) {
+        local_height = (m_image->local_images_height[i_rank]-2)/2;
+        counts[i_rank] = local_height*m_pool->getPoolingWidth();
+        m_pool->Pooling_height += local_height;
+        global_size += counts[i_rank];
+        if (i_rank > 0) displ[i_rank] = displ[i_rank-1]+counts[i_rank-1];
+    }
+    std::vector<double> filter_proc_mat(pool_size);
+    std::vector<double> global_vec (global_size);
+    std::vector<std::vector<double>> new_global_Matrix (filter_number, std::vector<double> (global_size));
+    for (size_t ii = 0; ii < filter_number; ii++) {
+        //std::copy(&m_pool->Pooling_Matrix[ii][0], &m_pool->Pooling_Matrix[ii][pool_size], filter_proc_mat.begin());
+		MPI_Allgatherv(&m_pool->Pooling_Matrix[ii][0], pool_size, MPI_DOUBLE, &new_global_Matrix[ii][0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD);
+        //new_global_Matrix[] = global_vec;
+    }
+    //fprintf(stderr,"first Allgatherv okay global_size %d\n",global_size);
+    MPI_Barrier(MPI_COMM_WORLD);
+    m_pool->Pooling_Matrix.clear();
+    m_pool->Pooling_Matrix.resize(filter_number, std::vector<double> (global_size));
+    m_pool->Pooling_Matrix.assign(new_global_Matrix.begin(), new_global_Matrix.end());
+    /*for (size_t ii = 0; ii < filter_number; ii++) {
+		//m_pool->Pooling_Matrix[ii].resize(global_size);
+        std::copy(&new_global_Matrix[ii][0], &new_global_Matrix[ii][global_size], m_pool->Pooling_Matrix[ii].begin());
+    }*/
+	
+	// Rassemblement de hidden matrix de convolution layer
+    m_convol->ConvMat_height = 0;
+    global_size = 0;
+    for (int i_rank = 0; i_rank < comm_size-1; i_rank++) {
+        local_height = m_image->local_images_height[i_rank]-2;
+        counts[i_rank] = local_height*largeur;
+        global_size += counts[i_rank];
+        m_convol->ConvMat_height += local_height;
+        if (i_rank > 0) displ[i_rank] = displ[i_rank-1]+counts[i_rank-1];
+    }
+    m_convol->ConvMat_height += m_image->local_images_height[comm_size-1] - 2; 
+	counts[comm_size-1] = m_image->local_images_height[comm_size-1]*largeur;
+    global_size += counts[comm_size-1];
+    
+    if(comm_size > 1) displ[comm_size-1] = displ[comm_size-2]+counts[comm_size-2];
+    //fprintf(stderr,"global_size %d m_convol->HiddenMat.size() %d counts[0] %d displ[0] %d\n",global_size, m_convol->HiddenMat.size(),counts[0],displ[0]);
+    global_vec.clear();
+	global_vec.resize(global_size);
+	MPI_Allgatherv(&m_convol->HiddenMat[0], m_convol->HiddenMat.size(), MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD);
+    //fprintf(stderr,"second Allgatherv okay \n");
+	MPI_Barrier(MPI_COMM_WORLD);
+    m_convol->HiddenMat.clear();
+    m_convol->HiddenMat.resize(global_size);
+	m_convol->HiddenMat.assign(global_vec.begin(), global_vec.end());
+    
+	// Rassemblement de hidden matrix de pooling layer
+    global_size = 0;
+	for (int i_rank = 0; i_rank < comm_size; i_rank++) {
+        counts[i_rank] = (m_image->local_images_height[i_rank]-2)*m_convol->getMatWidth();
+        global_size += counts[i_rank];
+        if (i_rank > 0) displ[i_rank] = displ[i_rank-1]+counts[i_rank-1];
+    }
+    filter_proc_mat.resize(convol_size);
+    global_vec.clear();
+    global_vec.resize(global_size);
+    new_global_Matrix.clear();
+    new_global_Matrix.resize(filter_number, std::vector<double> (global_size));
+    for (size_t ii = 0; ii < filter_number; ii++) {
+        //std::copy(&m_pool->HiddenMat_input[ii][0], &m_pool->HiddenMat_input[ii][convol_size], filter_proc_mat.begin());
+		MPI_Allgatherv(&m_pool->HiddenMat_input[ii][0], convol_size, MPI_DOUBLE, &new_global_Matrix[ii][0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD);
+		//std::copy(&global_vec[0], &global_vec[global_size], new_global_Matrix[ii].begin());
+    }
+    //fprintf(stderr,"third Allgatherv okay \n");
+    MPI_Barrier(MPI_COMM_WORLD);
+    m_pool->HiddenMat_input.clear();
+    m_pool->HiddenMat_input.resize(filter_number, std::vector<double> (global_size));
+    m_pool->HiddenMat_input.assign(new_global_Matrix.begin(), new_global_Matrix.end());
+    /*
+    for (size_t ii = 0; ii < filter_number; ii++) {
+        std::copy(&new_global_Matrix[ii][0], &new_global_Matrix[ii][global_size], m_pool->HiddenMat_input[ii].begin());
+    }
+    */
+    filter_proc_mat.clear();
+    filter_proc_mat.shrink_to_fit();
+
+    global_vec.clear();
+    global_vec.shrink_to_fit();
+
+    new_global_Matrix.clear();
+    new_global_Matrix.shrink_to_fit();
+
+
+    //--------------- Black Box starts here (comme dans le calcul séquentiel) ------------------------------------------------------------------
+    //fprintf(stderr,"starting softmax \n");
     std::vector<double> proba = m_softmax->Softmax_start(m_pool->getPoolingMatrix(), m_pool->getPoolingHeight(), m_pool->getPoolingWidth());
 
     loss = -log(proba[c]);
