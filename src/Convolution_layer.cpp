@@ -82,9 +82,11 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 		le_rank += (ConvMat_height/size)*(rank+1) + ConvMat_height%size;
 	}
 
-	proc_ConvMat_height = le_rank-ls_rank;
-	std::vector<double> vec_pixel_rank (inputImage_width*(proc_ConvMat_height+2));
-    vec_pixel_rank.assign(vec_pixel.begin()+inputImage_width*(ls_rank-1),vec_pixel.begin()+inputImage_width*(le_rank+1));
+	int proc_ConvMat_height = le_rank-ls_rank;
+    le_rank++;
+    ls_rank--;
+	//std::vector<double> vec_pixel_rank (inputImage_width*(proc_ConvMat_height+2));
+    //vec_pixel_rank.assign(vec_pixel.begin()+inputImage_width*(ls_rank-1),vec_pixel.begin()+inputImage_width*(le_rank+1));
 	//std::copy(&vec_pixel[inputImage_width*(ls_rank-1)], &vec_pixel[inputImage_width*(le_rank+1)], vec_pixel_rank.begin());
 
 	// distribution de l'image sur les différent procs à partir du rang 0
@@ -100,7 +102,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 	
     //Convolution procedure for filter_number
 	for (size_t ii = 0; ii < filter_number; ii++) {
-		convolution_process(vec_pixel_rank, ii);
+		convolution_process(vec_pixel, ii, ls_rank, le_rank);
 	}
 	
 	int counts[size];
@@ -117,7 +119,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 		if (i_rank > 0) displ[i_rank] = displ[i_rank-1]+counts[i_rank-1];
 	}
 	MPI_Barrier(MPI_COMM_WORLD);
-	//std::vector<double> filter_proc_ConvMat (ConvMat_width*proc_ConvMat_height);
+	//std::vector<double> simplified_proc_ConvMat (ConvMat_width*proc_ConvMat_height*filter_number);
 	//std::vector<double> global_vec (ConvMat_height*ConvMat_width);
 	for (size_t ii = 0; ii < filter_number; ii++) {
 		//std::copy(&proc_ConvMat[ii][0], &proc_ConvMat[ii][ConvMat_width*proc_ConvMat_height], filter_proc_ConvMat.begin());
@@ -127,14 +129,14 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 		//ConvMat.push_back(global_vec);
 	}
     MPI_Barrier(MPI_COMM_WORLD);
-    
+
     Hidden(vec_pixel); //hiding the last input
 }
 
-void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx) {
+void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx, const int ls_rank, const int le_rank) {
     std::vector<double> vec;
 
-    for (int ii = 0; ii < proc_ConvMat_height; ii++) { //loop on the height of the convolution matrix
+    for (int ii = ls_rank; ii < le_rank; ii++) { //loop on the height of the convolution matrix
         for (int jj = 0; jj < ConvMat_width; jj++) { //loop on the width of the convolution matrix
 
             double sum = 0; //initialization of the summation

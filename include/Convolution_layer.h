@@ -45,9 +45,9 @@ private:
 	
 	std::vector<std::vector<double>> filter_matrix; //Filter matrix filled with values
 
-	int ConvMat_height, ConvMat_width, proc_ConvMat_height; //con matrix intialization
+	int ConvMat_height, ConvMat_width; //, proc_ConvMat_height; //con matrix intialization
 
-	void convolution_process(const std::vector<double>& pixel, int idx); //multiplication and summation pixel value * filter value
+	void convolution_process(const std::vector<double>& pixel, int idx, const int ls_rank, const int le_rank); //multiplication and summation pixel value * filter value
 
 	//Backpropagation: Hiding inputs
 	std::vector<double> HiddenMat; //Hidding of inputs 
