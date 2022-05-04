@@ -23,8 +23,8 @@ void Convolution_layer::Hidden(const std::vector<double>& vect) { //caching
 //in convolution we use the whole volume of the input matrix n*n*channels(RGB, 3)
 void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pixel, int inputImage_height, int inputImage_width) {
 
-    ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride) + 1; //output convolution matrix height
-    ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride) + 1; //output convolution matrix width
+    ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride_conv) + 1; //output convolution matrix height
+    ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride_conv) + 1; //output convolution matrix width
 
     //initialization of the filter weights by random values (class Random_weights)
     if (initialization) {

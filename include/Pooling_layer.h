@@ -26,13 +26,15 @@ public:
 
 	std::vector<std::vector<double>> BackPropagation(std::vector<std::vector<double>> dloss_dlayer_output); //Backpropagation
 
+	void Hidden(const std::vector<std::vector<double>>& vect); //hidding the last input
+
 private:
 
 	std::vector<std::vector<double>> Pooling_Matrix; //Pooling output matrix
 	std::vector<std::vector<double>> HiddenMat_input; //HiddenMat_input matrix
 
 	int HiddenMat_height, HiddenMat_width; //parameters for Hidden
-	void Hidden(const std::vector<std::vector<double>>& vect); //hidding the last input
+
 	void Pooling_process(const std::vector<std::vector<double>>& pixel, int idx); //Pooling process
 
 	int Pooling_height, Pooling_width;

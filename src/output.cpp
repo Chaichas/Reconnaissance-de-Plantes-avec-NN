@@ -6,9 +6,10 @@
 #include <ctime>
 //For back_inserter
 #include <iterator>
+#include <mpi.h>
 
 #include "../include/Output.h"
-
+using namespace std;
 
 
 output::output(std::string file_train, std::string file_test) : m_trainPath(file_train), m_testPath(file_test)
@@ -66,35 +67,207 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
 
 //-------------------------------------------Training Part------------------------------------------------------
 
+void output::transform_matrix_to_vector(const std::vector<std::vector<double>> &matrix, std::vector<double>& simplified_vector, const int dim1, const int dim2) {
+    size_t idx = 0;
+    for (int ii = 0; ii < dim1; ii++) {
+        for (int jj = 0; jj < dim2; jj++) {
+            simplified_vector[idx] = matrix[ii][jj];
+            idx++;
+        }
+    }
+}
+
+void output::transform_matrix3_to_vector(const std::vector<std::vector<std::vector<double>>> &matrix, std::vector<double>& simplified_vector, const int dim1, const int dim2, const int dim3) {
+    size_t idx = 0;
+    for (int ii = 0; ii < dim1; ii++) {
+        for (int jj = 0; jj < dim2; jj++) {
+			for (int kk = 0; kk < dim3; kk++) {
+				simplified_vector[idx] = matrix[ii][jj][kk];
+				idx++;
+			}
+        }
+    }
+}
+
+void output::transform_vector_to_matrix(std::vector<std::vector<double>>& matrix, const std::vector<double> &simplified_vector, const int dim1, const int dim2) {
+    for (int ii = 0; ii < dim1; ii++) {
+		for (int jj = 0; jj < dim2; jj++) {
+			matrix[ii][jj] = simplified_vector[ii*dim2+jj];
+		}
+	}
+}
+
+void output::transform_vector_to_matrix3(std::vector<std::vector<std::vector<double>>>& matrix, const std::vector<double> &simplified_vector, const int dim1, const int dim2, const int dim3) {
+    for (int ii = 0; ii < dim1; ii++) {
+		for (int jj = 0; jj < dim2; jj++) {
+			for (int kk = 0; kk < dim3; kk++) {
+				matrix[ii][jj][kk] = simplified_vector[(ii*dim2+jj)*dim3+kk];
+			}
+		}
+	}
+}
+
 void output::Training_data(int numb_epoch, double alpha)
 {
-    int rank, size;
+	
+    int rank, comm_size;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    MPI_Comm_size(MPI_COMM_WORLD,&size);
-
-    if(rank==0) 
+    MPI_Comm_size(MPI_COMM_WORLD,&comm_size);
+	
+    if (rank == 0)
         std::cout << "--------------Start Training ----------" << '\n';
 
     std::vector<int> Labels;
     std::vector<std::string> training_files = output::Process_directory(m_trainPath, Labels);
+	int tot_files = training_files.size();
+	
 
-    int it = 0;
-    while (it < numb_epoch) {
+    int it_ep = 0;
+    while (it_ep < numb_epoch) {
 
         int label_i = 0;
         double runningAcc = 0.0, runningLoss = 0.0;
-        
-        for (std::vector<std::string>::iterator it = training_files.begin(); it != training_files.end(); ++it)
+	
+		
+		int fs_rank, fe_rank;
+		if (rank < tot_files%comm_size)
+		{
+			fs_rank = (tot_files/comm_size)*rank + rank;
+			fe_rank = (tot_files/comm_size)*(rank+1) + rank + 1;
+		}
+		else
+		{
+			fs_rank = (tot_files/comm_size)*rank + tot_files%comm_size;
+			fe_rank = (tot_files/comm_size)*(rank+1) + tot_files%comm_size;
+		}
+		int file_counts[comm_size];
+		int file_displ[comm_size];
+		file_displ[0] = 0;
+		for (int i_rank=0; i_rank<comm_size; i_rank++) {
+			if (i_rank < tot_files%comm_size) {
+				file_counts[i_rank] = (tot_files/comm_size)+1;
+			}
+			else {
+				file_counts[i_rank] = tot_files/comm_size;
+			}
+			if (i_rank > 0) file_displ[i_rank] = file_displ[i_rank-1]+file_counts[i_rank-1];
+		}
+		int file_size = fe_rank - fs_rank;
+
+        int conv_h, pool_h;
+		
+		std::vector<vector<double>> proc_images;
+		std::vector<vector<vector<double>>> proc_conv_images;
+		std::vector<vector<vector<double>>> proc_pool_images;
+        int hauteur, largeur;
+        for (int file_idx = fs_rank; file_idx < fe_rank; file_idx++)
         {
-            std::string name = *it;
-            int hauteur = 0, largeur = 0;
+            std::string name = training_files[file_idx];
+            hauteur = 0; 
+			largeur = 0;
 
             m_image->loadImage(name, hauteur, largeur);
-            label_i = std::distance(training_files.begin(), it);
 
             //Lancement de training
-           
-            std::vector<double> proba = prediction(Labels[label_i], hauteur, largeur);
+			
+			m_convol->convolution_parameters(m_image->get_fusion_canal(), hauteur, largeur);
+			conv_h = m_convol->getMatHeight();
+            //fprintf(stderr,"H %d W %d \n",m_convol->getMatHeight(),m_convol->getMatWidth());
+            m_pool->Pooling_parameters(m_convol->getConvMat(), m_convol->getMatHeight(), m_convol->getMatWidth());
+			pool_h = m_convol->getMatWidth();
+            proc_images.push_back(m_image->m_ImageVector);
+			proc_conv_images.push_back(m_convol->getConvMat());
+			proc_pool_images.push_back(m_pool->getPoolingMatrix());
+		}
+		
+		std::vector<std::vector<double>> global_images;
+		std::vector<std::vector<std::vector<double>>> global_conv_images;
+		std::vector<std::vector<std::vector<double>>> global_pool_images;
+
+		int count[comm_size];
+		int displ[comm_size];
+		int image_size = hauteur*largeur;
+		int conv_size = proc_conv_images[0][0].size();
+		int pool_size = proc_pool_images[0][0].size();
+		std::vector<double> simplified_vector (file_size*image_size);
+		std::vector<double> global_vector (tot_files*image_size);
+        //fprintf(stderr,"tot_files %d file_size %d image_size %d \n",tot_files,file_size,image_size);
+		transform_matrix_to_vector(proc_images, simplified_vector, file_size, image_size);
+        //fprintf(stderr,"proc_images_size %d proc_images_size2 %d \n",proc_images.size(),proc_images[0].size());
+		for (int i_rank =0; i_rank < comm_size; i_rank++) {
+			count[i_rank] = file_counts[i_rank]*image_size;
+			displ[i_rank] = file_displ[i_rank]*image_size;
+		}
+        //fprintf(stderr,"count %d displ %d \n",count[0],displ[0]);
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Gatherv(&simplified_vector[0], simplified_vector.size(), MPI_DOUBLE, &global_vector[0], count, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		//fprintf(stderr,"first okay \n");
+        if (rank == 0) {
+			global_images.resize(tot_files, std::vector<double> (image_size));
+            
+			transform_vector_to_matrix(global_images, global_vector, tot_files, image_size);
+            //fprintf(stderr,"%f  %f %f %f \n",global_images[0][100],global_vector[100],simplified_vector[100],proc_images[0][100]);
+        }
+		
+		for (int i_rank =0; i_rank < comm_size; i_rank++) {
+			count[i_rank] = file_counts[i_rank]*conv_size*8;
+			displ[i_rank] = file_displ[i_rank]*conv_size*8;
+		}
+        simplified_vector.clear();
+        global_vector.clear();
+		simplified_vector.resize(file_size*conv_size*8); //8 nbr of filters
+		global_vector.resize(tot_files*conv_size*8); //8 nbr of filters
+		transform_matrix3_to_vector(proc_conv_images, simplified_vector,file_size,8,conv_size);
+        //fprintf(stderr,"tot_files %d file_size %d conv_size %d \n",tot_files,file_size,image_size);
+        //fprintf(stderr,"proc_conv_images %d proc_conv_images2 %d proc_conv_images3 %d\n",proc_conv_images.size(),proc_conv_images[0].size(),proc_conv_images[0][0].size());
+        //fprintf(stderr,"count %d displ %d \n",count[0],displ[0]);
+        MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Gatherv(&simplified_vector[0], simplified_vector.size(), MPI_DOUBLE, &global_vector[0], count, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		//fprintf(stderr,"second okay \n");
+        if (rank == 0) {
+			global_conv_images.resize(tot_files, std::vector<std::vector<double>> (8, std::vector<double> (conv_size)));
+			transform_vector_to_matrix3(global_conv_images, global_vector, tot_files, 8, conv_size);
+		}
+		
+		for (int i_rank =0; i_rank < comm_size; i_rank++) {
+			count[i_rank] = file_counts[i_rank]*pool_size*8;
+			displ[i_rank] = file_displ[i_rank]*pool_size*8;
+		}
+        simplified_vector.clear();
+        global_vector.clear();
+		simplified_vector.resize(file_size*pool_size*8); //8 nbr of filters
+		global_vector.resize(tot_files*pool_size*8); //8 nbr of filters
+		transform_matrix3_to_vector(proc_pool_images, simplified_vector,file_size,8,pool_size);
+        MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Gatherv(&simplified_vector[0], simplified_vector.size(), MPI_DOUBLE, &global_vector[0], count, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		//fprintf(stderr,"third okay \n");
+        if (rank == 0) {
+			global_pool_images.resize(tot_files, std::vector<std::vector<double>> (8, std::vector<double> (pool_size)));
+			transform_vector_to_matrix3(global_pool_images, global_vector, tot_files, 8, pool_size);
+		}
+		
+		if (rank == 0) {
+        for (std::vector<std::string>::iterator it = training_files.begin(); it != training_files.end(); ++it)
+        {
+		
+			label_i = std::distance(training_files.begin(), it);
+			
+			m_convol->Hidden(global_images[label_i]);
+			m_pool->Hidden(global_conv_images[label_i]);
+			//fprintf(stderr,"global_images[30][06] %f,  HM %f \n",global_images[label_i][06],m_convol->HiddenMat[06]);
+			std::vector<double> proba = m_softmax->Softmax_start(global_pool_images[label_i], m_pool->getPoolingHeight(), m_pool->getPoolingWidth());
+
+			loss = -log(proba[Labels[label_i]]);
+
+			//auto  max = std::max_element(proba.begin(), proba.end());
+			int proba_i = std::distance(proba.begin(), std::max_element(proba.begin(), proba.end()));
+
+			if (proba_i == Labels[label_i])
+				acc = 1;
+			else
+				acc = 0;
+			
+            //std::vector<double> proba = prediction(Labels[label_i], hauteur, largeur);
 
             //Initialisation de gradient
             std::vector<double> gradient = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
@@ -111,11 +284,11 @@ void output::Training_data(int numb_epoch, double alpha)
         label_i++;
 
         //Affichage de perte et de la precison pour chaque epoch 
-        if(rank == 0)
-            std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc / label_i) * 100 << " %" << '\n';
+        std::cout << "Epoch " << it_ep << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc / label_i) * 100 << " %" << '\n';
         runningLoss = 0.0;
         runningAcc = 0.0;
-        it++;
+		}
+        it_ep++;
     }
 }
 
@@ -124,15 +297,10 @@ void output::Training_data(int numb_epoch, double alpha)
 void output::Testing_data()
 {
 
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    MPI_Comm_size(MPI_COMM_WORLD,&size);
-
     int label_i = 0;
     double runningAcc = 0.0, runningLoss = 0.0;
 
-    if(rank == 0)
-        std::cout << "-----------------Testing Data -------------------" << '\n';
+    std::cout << "-----------------Testing Data -------------------" << '\n';
 
     std::vector<int> labels_test;
     std::vector<std::string> testing_files = output::Process_directory(m_trainPath, labels_test);
@@ -162,17 +330,15 @@ void output::Testing_data()
     label_i++;
 
     int wrong = label_i - right;
-    if(rank == 0) {
-        std::cout << "--------------------------------Result of testing-------------------------" << '\n';
+    std::cout << "--------------------------------Result of testing-------------------------" << '\n';
 
-        std::cout << "Average Loss" << runningLoss / label_i << " , Accuracy " << '\n';
-        std::cout << "Accuracy " << (runningAcc / label_i) * 100 << " %." << '\n';
+    std::cout << "Average Loss" << runningLoss / label_i << " , Accuracy " << '\n';
+    std::cout << "Accuracy " << (runningAcc / label_i) * 100 << " %." << '\n';
 
-        std::cout << "---------------------------------------------------------------------------" << '\n';
-        std::cout << "Le nombre d'image de test est : " << label_i << '\n';
-        std::cout << "Le nombre d'image correctement predits : " << right << '\n';
-        std::cout << "Le nombre d'image non predits : " << wrong << '\n';
-    }
+    std::cout << "---------------------------------------------------------------------------" << '\n';
+    std::cout << "Le nombre d'image de test est : " << label_i << '\n';
+    std::cout << "Le nombre d'image correctement predits : " << right << '\n';
+    std::cout << "Le nombre d'image non predits : " << wrong << '\n';
 
 }
 

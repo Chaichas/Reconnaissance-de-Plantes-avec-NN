@@ -15,7 +15,7 @@
 #define filter_height 3 //hight of the filter
 #define filter_width 3 //width of the filter
 #define padding 0 //padding (explained in the descriptive)
-#define stride 1 //offset
+#define stride_conv 1 //offset
 #define pooling_size 2 //pooling size
 
 //Note: This is the case of a valid convolution (i.e., the padding is null)
@@ -36,6 +36,9 @@ public:
 	const std::vector<std::vector<double>>& getConvMat() const { return ConvMat; }
 	void static random_weights(double nb_filters, double nb_weights, std::vector<std::vector<double>>& filter_matrix);
 
+	void Hidden(const std::vector<double>& vect);
+
+	std::vector<double> HiddenMat; //Hidding of inputs 
 
 private:
 
@@ -48,8 +51,7 @@ private:
 	void convolution_process(const std::vector<double>& pixel, int idx); //multiplication and summation pixel value * filter value
 
 	//Backpropagation: Hiding inputs
-	std::vector<double> HiddenMat; //Hidding of inputs 
-	void Hidden(const std::vector<double>& vect);
+
 	bool initialization = true; //initializing filters with random values 
 
 public:
