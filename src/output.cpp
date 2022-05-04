@@ -45,9 +45,11 @@ output::~output()
 
 std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
 {
-
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
     m_convol->convolution_parameters(m_image->get_fusion_canal(), hauteur, largeur);
+    if (rank==0) {
     m_pool->Pooling_parameters(m_convol->getConvMat(), m_convol->getMatHeight(), m_convol->getMatWidth());
     std::vector<double> proba = m_softmax->Softmax_start(m_pool->getPoolingMatrix(), m_pool->getPoolingHeight(), m_pool->getPoolingWidth());
 
@@ -62,15 +64,19 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
         acc = 0;
 
     return proba;
+    }
+    else{
+        std::vector<double> v_null;
+        return v_null;
+    }
 }
 
 //-------------------------------------------Training Part------------------------------------------------------
 
 void output::Training_data(int numb_epoch, double alpha)
 {
-    int rank, size;
+    int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    MPI_Comm_size(MPI_COMM_WORLD,&size);
 
     if(rank==0) 
         std::cout << "--------------Start Training ----------" << '\n';
@@ -95,7 +101,7 @@ void output::Training_data(int numb_epoch, double alpha)
             //Lancement de training
            
             std::vector<double> proba = prediction(Labels[label_i], hauteur, largeur);
-
+            if (rank == 0) {
             //Initialisation de gradient
             std::vector<double> gradient = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
             gradient[Labels[label_i]] = (-1.0 / proba[Labels[label_i]]);
@@ -106,15 +112,18 @@ void output::Training_data(int numb_epoch, double alpha)
 
             runningLoss += loss;
             runningAcc += acc;
+            }
         }
-
         label_i++;
+        if (rank == 0) {
+        
 
         //Affichage de perte et de la precison pour chaque epoch 
         if(rank == 0)
             std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc / label_i) * 100 << " %" << '\n';
         runningLoss = 0.0;
         runningAcc = 0.0;
+        }
         it++;
     }
 }
@@ -124,9 +133,8 @@ void output::Training_data(int numb_epoch, double alpha)
 void output::Testing_data()
 {
 
-    int rank, size;
+    int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    MPI_Comm_size(MPI_COMM_WORLD,&size);
 
     int label_i = 0;
     double runningAcc = 0.0, runningLoss = 0.0;
@@ -149,7 +157,7 @@ void output::Testing_data()
         //Recuperation de vecteur de probabilte de sortie 
         std::vector<double> out = prediction(labels_test[label_i], hauteur, largeur);
 
-
+        if (rank == 0) {
         runningAcc += acc;
         runningLoss += loss;
 
@@ -157,12 +165,13 @@ void output::Testing_data()
 
         if (labels_test[label_i] == predIndex)
             right++;
-
+        }
     }
     label_i++;
 
-    int wrong = label_i - right;
+    
     if(rank == 0) {
+        int wrong = label_i - right;
         std::cout << "--------------------------------Result of testing-------------------------" << '\n';
 
         std::cout << "Average Loss" << runningLoss / label_i << " , Accuracy " << '\n';
