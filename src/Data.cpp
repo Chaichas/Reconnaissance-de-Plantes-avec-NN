@@ -35,16 +35,15 @@ void Data::create_canal(Mat* image)
     while (i < image->rows)
     {
         int j = 0;
-	double R,V,B,somme;
         while (j < image->cols)
         {
-	  R = ((double)image->ptr<Vec3b>(i)[j][2]);
-            V = ((double)image->ptr<Vec3b>(i)[j][1]);
-            B = ((double)image->ptr<Vec3b>(i)[j][0]);
-            somme = (R + V + B);
+            double R = ((double)image->at<Vec3b>(i, j)[2]);
+            double V = ((double)image->at<Vec3b>(i, j)[1]);
+            double B = ((double)image->at<Vec3b>(i, j)[0]);
+            double somme = (R + V + B);
 
             //normalisation des valeurs de pixels dans la plage [-0.5, 0.5] pour ne pas ralentir le processus d'apprentissage
-            somme = (somme *(1/ 765)) - 0.5;
+            somme = (somme / 765) - 0.5;
             m_ImageVector.push_back(somme);
             j++;
         }
