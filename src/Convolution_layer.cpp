@@ -1,7 +1,7 @@
 #include <iostream>
 #include "../include/Convolution_layer.h"
 #include<vector>
-#include<omp.h>
+#include<omp.h> 
 
 Convolution_layer::Convolution_layer() {} //constructor
 
@@ -60,10 +60,11 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 
 void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx) {
     std::vector<double> vec;
-
-    for (int ii = 0; ii < ConvMat_height; ii++) { //loop on the height of the convolution matrix
+    int Tile=16;   
+    // for (int ii = 0; ii < ConvMat_height; ii++) { //loop on the height of the convolution matrix
+       for (int a = 0; a < ConvMat_height; a+=Tile) {
         for (int jj = 0; jj < ConvMat_width; jj++) { //loop on the width of the convolution matrix
-
+	  for(int ii = a; ii< a+Tile; ii++){
             double sum = 0; //initialization of the summation
            
             for (int kk = 0; kk < filter_height; kk++) { //loop on the height of the filter
@@ -75,10 +76,11 @@ void Convolution_layer::convolution_process(const std::vector<double>& pixel, in
 
                 }
             }
-            vec.push_back(sum); //storing sum value in vec		
+            vec.push_back(sum); //storing sum value in vec
+	  }
         }
     }
-    ConvMat.push_back(vec); //storing vec value in ConvMat
+    ConvMat.push_back(vec); //storing vec value in ConvMat 
 }
 
 void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_out, double learn_rate)
@@ -87,12 +89,12 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
     //filters with same shape as filter_matrix
     std::vector<std::vector<double>> filters;
     for (size_t i = 0; i < filter_number; i++) {
-        std::vector<double> v;
-        for (int j = 0; j < (filter_height * filter_width); j++)
+        std::vector<double> v; 
+	for (int j = 0; j < (filter_height * filter_width); j++)
             v.push_back(0);
         filters.push_back(v);
     }
-
+   
     //For keeping 3x3 reegions of last input
     std::vector<std::vector<double>> regions;
 
