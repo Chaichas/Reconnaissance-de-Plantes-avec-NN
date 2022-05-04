@@ -107,18 +107,48 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 	
 	int counts[size];
 	int displ[size];
-	displ[0] = 0;
-	for (int i_rank=0; i_rank<size; i_rank++) {
-		if (i_rank < ConvMat_height%size) {
-			counts[i_rank] = (ConvMat_height/size)+1;
-		}
-		else {
-			counts[i_rank] = ConvMat_height/size;
-		}
-        counts[i_rank] *= ConvMat_width;
-		if (i_rank > 0) displ[i_rank] = displ[i_rank-1]+counts[i_rank-1];
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
+    std::vector<double> global_vec;
+    if (rank == 0) {
+        displ[0] = 0;
+        for (int i_rank=0; i_rank<size; i_rank++) {
+            if (i_rank < ConvMat_height%size) {
+                counts[i_rank] = (ConvMat_height/size)+1;
+            }
+            else {
+                counts[i_rank] = ConvMat_height/size;
+            }
+            counts[i_rank] *= ConvMat_width*filter_number;
+            if (i_rank > 0) displ[i_rank] = displ[i_rank-1]+counts[i_rank-1];
+        }
+        
+        global_vec.resize(ConvMat_height*ConvMat_width*filter_number);
+    }
+	simplified_filter.resize(proc_ConvMat_height*ConvMat_width*filter_number);
+	int idx = 0;
+    for (int ii = 0; ii < filter_number; ii++) {
+        for (int jj = 0; jj < proc_ConvMat_height*ConvMat_width; jj++) {
+            simplified_filter[idx] = proc_ConvMat[ii][jj];
+            idx++;
+        }
+    }
+    
+    MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Gatherv(&simplified_filter[0], proc_ConvMat_height*ConvMat_width*filter_number, MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	if (rank == 0) {
+        for (int ii = 0; ii < filter_number; ii++) {
+            int idx = 0;
+            for (int i_rank=0; i_rank<size; i_rank++) {
+                int nbr_per_filter = counts[i_rank]/filter_number;
+                nbr_per_filter *= ii;
+                for (int jj=0; jj<nbr_per_filter; jj++) {
+                    ConvMat[ii][idx] = global_vec[displ[i_rank]+nbr_per_filter+jj];
+                    idx++;
+                }
+            }
+        }
+    }
+    fprintf(stderr,"size %d \n",vec_pixel.size());
+	/*MPI_Barrier(MPI_COMM_WORLD);
 	//std::vector<double> simplified_proc_ConvMat (ConvMat_width*proc_ConvMat_height*filter_number);
 	//std::vector<double> global_vec (ConvMat_height*ConvMat_width);
 	for (size_t ii = 0; ii < filter_number; ii++) {
@@ -127,10 +157,11 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
         MPI_Gatherv(&proc_ConvMat[ii][0], ConvMat_width*proc_ConvMat_height, MPI_DOUBLE, &ConvMat[ii][0], counts, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 		//MPI_Allgatherv(&filter_proc_ConvMat[0], filter_proc_ConvMat.size(), MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD);
 		//ConvMat.push_back(global_vec);
-	}
+	}*/
     MPI_Barrier(MPI_COMM_WORLD);
 
     Hidden(vec_pixel); //hiding the last input
+    fprintf(stderr,"hello");
 }
 
 void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx, const int ls_rank, const int le_rank) {
