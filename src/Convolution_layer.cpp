@@ -60,9 +60,11 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 
 void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx) {
     std::vector<double> vec;
-    int Tile=16;   
+    int Tile=16;
+    // #pragma unroll(16)    
     // for (int ii = 0; ii < ConvMat_height; ii++) { //loop on the height of the convolution matrix
        for (int a = 0; a < ConvMat_height; a+=Tile) {
+	 //#pragma unroll(16) 
         for (int jj = 0; jj < ConvMat_width; jj++) { //loop on the width of the convolution matrix
 	  for(int ii = a; ii< a+Tile; ii++){
             double sum = 0; //initialization of the summation
@@ -88,6 +90,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
     //d_L_d_out is the loss gradient for this layer's outputs
     //filters with same shape as filter_matrix
     std::vector<std::vector<double>> filters;
+    #pragma unroll(16) 
     for (size_t i = 0; i < filter_number; i++) {
         std::vector<double> v; 
 	for (int j = 0; j < (filter_height * filter_width); j++)
@@ -99,6 +102,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
     std::vector<std::vector<double>> regions;
 
     //Loop for storing 3x3 regions into "regions"
+    #pragma unroll(16)
     for (int i = 0; i < ConvMat_height; i++)
     {
         for (int j = 0; j < ConvMat_width; j++) {
@@ -146,7 +150,7 @@ void Convolution_layer::random_weights(double nb_filters, double nb_weights, std
     std::default_random_engine generator(seed); //random generator engine
     std::normal_distribution<double> distribution(0.0, 1.0); //( result_type mean = 0.0, result_type stddev = 1.0 )
 
-
+    #pragma unroll(16)
     for (int ii = 0; ii < nb_filters; ii++) { //loop on the total number of filters
 
         std::vector<double> one_filter; //array initialisation with no defined size

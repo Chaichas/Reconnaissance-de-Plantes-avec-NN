@@ -1,13 +1,9 @@
 ﻿#include "../include/softmax_layer.h"
 #include <algorithm>
 #include "../include/Convolution_layer.h"
-#include <omp.h>
-
-
 
 void Softmax_layer::Flatten(const std::vector<std::vector<double>>& img_input, int d)
 {
-    #pragma omp for schedule(dynamic)  
     for (int i = 0; i < d; i++) {
         mFlatten.insert(mFlatten.end(), img_input[i].begin(), img_input[i].end());
     }
@@ -34,7 +30,7 @@ void Softmax_layer::Hidden()
 std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<double>>& img_input, int img_height, int img_width)
 {
     mLength = img_height * img_width * DEPTH;
-    int i,j;
+    
 
     //Pour l'initialisation des poids et des biais en premiére exécution
     if (pred)
@@ -44,11 +40,10 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
 
         //Distribution de nombres aléatoires qui produit des valeurs  virgule flottante selon une distribution normale
         Convolution_layer::random_weights(mLength, ND, mWeights);
-       
-	//  int i,j;
-        #pragma omp parallel for private(j)
-        for ( i = 0; i < mLength; i++) {
-            for ( j = 0; j < ND; j++) {
+
+        #pragma unroll(16)
+        for (size_t i = 0; i < mLength; i++) {
+            for (size_t j = 0; j < ND; j++) {
                 mWeights[i][j] = (double)mWeights[i][j] / (double)mLength;
             }
         }
@@ -63,36 +58,32 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
     Flatten(img_input, DEPTH);
 
     //Multiplier l'entrée aplatie et mWeights
- 
-    i = 0;       
-    while (i < ND)  {
-     double s = 0;
-  
+    int i = 0;
+    while (i < ND){
+        double s = 0;
         // Boucle pour multiplier  mWeights[j] pour chaque  plante avec chaque mFlatten [j]
-        for ( j = 0; j < mLength; j++) {
+        for (int j = 0; j < mLength; j++) {
             s = s + (mFlatten[j] * mWeights[j][i]);
         }
         //Somme de biais
         s = s + mBiases[i];
         mTotal.push_back(s);
-	 i++;
+        i++;
     }
     std::vector<double>  vectExponentiel;
     std::vector<double>  vectPredictions;
 
     double  sumExp = 0.0;
     double t = 0.0;
-     i = 0;
-     //    #pragma omp parallel for private(sumExp,t)
- 
-       while(i <ND)
+    i = 0;
+    while( i < ND)
     {
         t = exp(mTotal[i]);
         vectExponentiel.push_back(t);
         sumExp = sumExp + t;
-	 i++;
+        i++;
     }
-    j = 0;
+    int j = 0;
     while (j < ND)
     {
         t = ((double)vectExponentiel[j] / (double)sumExp);
@@ -112,7 +103,7 @@ std::vector<std::vector<double>> Softmax_layer::BackPropagation(const std::vecto
 {
     //dLossdOut is the loss gradient for this layer's outputs
     std::vector<std::vector<double>> dlossdinputs_shaped;
-    
+
     for (int i = 0; i < ND; i++)
     
     {
@@ -167,6 +158,7 @@ std::vector<std::vector<double>> Softmax_layer::BackPropagation(const std::vecto
 
         // Gradients de perte par rapport aux poids
         std::vector<std::vector<double>> dLossdw;
+	#pragma unroll(16)
         for (int k = 0; k < mCachedLength; k++) {
             std::vector<double> vectsum;
             for (int j = 0; j < ND; j++) {
@@ -180,6 +172,7 @@ std::vector<std::vector<double>> Softmax_layer::BackPropagation(const std::vecto
        
 
         //mettre à jour les poids et les biais
+	#pragma unroll(16)
         for (int k = 0; k < mWeights.size(); k++)
         {
             for (int j = 0; j < mWeights[k].size(); j++)
@@ -187,6 +180,7 @@ std::vector<std::vector<double>> Softmax_layer::BackPropagation(const std::vecto
                 mWeights[k][j] = mWeights[k][j] - (learn_rate * dLossdw[k][j]);
             }
         }
+	#pragma unroll(16)
         for (int k = 0; k < mBiases.size(); k++)
         {
             mBiases[k] = mBiases[k] -(learn_rate * dLossdb[k]);

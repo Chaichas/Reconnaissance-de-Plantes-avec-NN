@@ -50,8 +50,8 @@ void Pooling_layer::Pooling_parameters(const std::vector<std::vector<double>>& v
 void Pooling_layer::Pooling_process(const std::vector<std::vector<double>>& pixel, int idx) {
 
     std::vector<double> vec; //vector vec
-    #pragma omp for schedule(dynamic)
-    for (int ii = 0; ii < (Pooling_size * Pooling_height); ii += Pooling_size) {
+     #pragma omp for schedule(dynamic)
+     for (int ii = 0; ii < (Pooling_size * Pooling_height); ii += Pooling_size) {
         for (int jj = 0; jj < (Pooling_size * Pooling_width); jj += Pooling_size) {
 
             std::vector<double> v; //initialize a vector v
@@ -99,7 +99,7 @@ std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std:
 		for (int ii = 0; ii < (Pooling_size * Pooling_height); ii += Pooling_size) {
 			for (int jj = 0; jj < (Pooling_size * Pooling_width); jj += Pooling_size) {
 				std::vector<double> v;
-
+                                #pragma unroll(16)
 				for (int kk = 0; kk < Filter_height; kk++) {
 					for (int hh = 0; hh < Filter_width; hh++) {
 
@@ -109,7 +109,7 @@ std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std:
 
 				double weightMax = *max_element(v.begin(), v.end()); //search the max of vector v elements
 				bool var = true; //variable var booleen
-
+                                #pragma unroll(16)
 				for (int mm = 0; mm < Filter_height; mm++) {
 					for (int nn = 0; nn < Filter_width; nn++) {
 
