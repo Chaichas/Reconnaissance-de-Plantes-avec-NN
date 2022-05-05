@@ -16,7 +16,7 @@
 #define filter_height 3 //hight of the filter
 #define filter_width 3 //width of the filter
 #define padding 0 //padding (explained in the descriptive)
-#define stride 1 //offset
+#define stride_conv 1 //offset
 #define pooling_size 2 //pooling size
 
 //Note: This is the case of a valid convolution (i.e., the padding is null)

@@ -23,8 +23,8 @@ void Convolution_layer::Hidden(const std::vector<double>& vect) { //caching
 //in convolution we use the whole volume of the input matrix n*n*channels(RGB, 3)
 void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pixel, int inputImage_height, int inputImage_width) {
 
-    ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride) + 1; //output convolution matrix height
-    ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride) + 1; //output convolution matrix width
+    ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride_conv) + 1; //output convolution matrix height
+    ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride_conv) + 1; //output convolution matrix width
 
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
@@ -136,18 +136,20 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 	MPI_Gatherv(&simplified_filter[0], proc_ConvMat_height*ConvMat_width*filter_number, MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	if (rank == 0) {
         for (int ii = 0; ii < filter_number; ii++) {
-            int idx = 0;
+            idx = 0;
             for (int i_rank=0; i_rank<size; i_rank++) {
                 int nbr_per_filter = counts[i_rank]/filter_number;
-                nbr_per_filter *= ii;
+                //fprintf(stderr,"nbr_per_filter %d \n",nbr_per_filter);
+                //nbr_per_filter *= ii;
+                int nbr_per_filter_ii = ii * nbr_per_filter;
                 for (int jj=0; jj<nbr_per_filter; jj++) {
-                    ConvMat[ii][idx] = global_vec[displ[i_rank]+nbr_per_filter+jj];
+                    ConvMat[ii][idx] = global_vec[displ[i_rank]+nbr_per_filter_ii+jj];
                     idx++;
                 }
             }
         }
     }
-    fprintf(stderr,"size %d \n",vec_pixel.size());
+    //fprintf(stderr,"size %d \n",vec_pixel.size());
 	/*MPI_Barrier(MPI_COMM_WORLD);
 	//std::vector<double> simplified_proc_ConvMat (ConvMat_width*proc_ConvMat_height*filter_number);
 	//std::vector<double> global_vec (ConvMat_height*ConvMat_width);
@@ -161,7 +163,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     MPI_Barrier(MPI_COMM_WORLD);
 
     Hidden(vec_pixel); //hiding the last input
-    fprintf(stderr,"hello");
+    //fprintf(stderr,"hello");
 }
 
 void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx, const int ls_rank, const int le_rank) {
