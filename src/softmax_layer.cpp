@@ -39,6 +39,7 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
         mBiases.assign(ND, 0.0);
 
         //Distribution de nombres aléatoires qui produit des valeurs  virgule flottante selon une distribution normale
+        mWeights.resize(mLength, std::vector<double> (ND)); // AM: initialisation de la taille du filtre suite à la modification de random_weights
         Convolution_layer::random_weights(mLength, ND, mWeights);
 
 

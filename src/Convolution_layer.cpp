@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../include/Convolution_layer.h"
 #include<vector>
+#include <mpi.h>
 
 Convolution_layer::Convolution_layer() {} //constructor
 
@@ -22,22 +23,48 @@ void Convolution_layer::Hidden(const std::vector<double>& vect) { //caching
 
 //in convolution we use the whole volume of the input matrix n*n*channels(RGB, 3)
 void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pixel, int inputImage_height, int inputImage_width) {
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Comm_size(MPI_COMM_WORLD,&size);
 
     ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride_conv) + 1; //output convolution matrix height
     ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride_conv) + 1; //output convolution matrix width
 
     //initialization of the filter weights by random values (class Random_weights)
-    if (initialization) {
-        random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
-        double dim_filter_r = 1.0 / (double)(filter_height * filter_width);
-        //normalizing wight values, Ref3
-        for (size_t ii = 0; ii < filter_number; ii++) { //loop on number of filters
-            for (size_t jj = 0; jj < (filter_height * filter_width); jj++) { //loop on total number of weights within each filter
-                filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] * dim_filter_r; //normalized filter
+    
+	if (initialization) {
+        filter_matrix.resize(filter_number, std::vector<double> (filter_height*filter_width));
+        std::vector<double> simplified_filter (filter_number*filter_height*filter_width);
+        if(rank==0) { // le filtre 
+			random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
+
+			//normalizing wight values, Ref3
+			for (size_t ii = 0; ii < filter_number; ii++) { //loop on number of filters
+				for (size_t jj = 0; jj < (filter_height * filter_width); jj++) { //loop on total number of weights within each filter
+					filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] / (double)(filter_height * filter_width); //normalized filter
+				}
+			}
+            // transformation de filter_matrix en un vecteur 1d pour un partage plus facile
+            size_t idx = 0;
+            for (size_t ii = 0; ii < filter_number; ii++) {
+                for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
+                    simplified_filter[idx] = filter_matrix[ii][jj];
+                    idx++;
+                }
+            }
+		}
+
+        MPI_Bcast(&simplified_filter[0],filter_number*filter_height*filter_width,MPI_DOUBLE,0,MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
+        //std::fprintf(stderr,"Iam rank: blala %d, %ld \n",rank,simplified_filter.size());
+        // retransformation du vecteur en matrice de filtre
+        for (size_t ii = 0; ii < filter_number; ii++) {
+            for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
+                filter_matrix[ii][jj] = simplified_filter[ii*filter_height*filter_width+jj];
             }
         }
         initialization = false;
-    }
+	}
 
     ConvMat.clear();
 
@@ -139,20 +166,19 @@ void Convolution_layer::random_weights(double nb_filters, double nb_weights, std
     std::default_random_engine generator(seed); //random generator engine
     std::normal_distribution<double> distribution(0.0, 1.0); //( result_type mean = 0.0, result_type stddev = 1.0 )
 
-
     for (int ii = 0; ii < nb_filters; ii++) { //loop on the total number of filters
 
-        std::vector<double> one_filter; //array initialisation with no defined size
+        //std::vector<double> one_filter (nb_weights); //array initialisation with no defined size
 
         for (int jj = 0; jj < nb_weights; jj++) { //nb_weights = filter height * filter width
 
             double number = (distribution(generator)); //random number from a random generator engine, Ref2
 
-            one_filter.push_back(number); // Filling of 1 filter with random values
+            filter_matrix[ii][jj] = number; // Filling of 1 filter with random values
 
         }
 
-        filter_matrix.push_back(one_filter); //Filling of all filters with random values
+        //filter_matrix[ii] = one_filter; //Filling of all filters with random values
     }
 
 }
