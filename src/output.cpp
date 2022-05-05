@@ -123,43 +123,57 @@ void output::Training_data(int numb_epoch, double alpha)
 	
 
     int it_ep = 0;
+    std::vector<vector<double>> proc_images;
+    std::vector<vector<vector<double>>> proc_conv_images;
+    std::vector<vector<vector<double>>> proc_pool_images;
+
+    std::vector<std::vector<double>> global_images;
+    std::vector<std::vector<std::vector<double>>> global_conv_images;
+    std::vector<std::vector<std::vector<double>>> global_pool_images;
+
+    std::vector<double> simplified_vector;
+    std::vector<double> global_vector;
+
+    int fs_rank, fe_rank;
+    if (rank < tot_files%comm_size)
+    {
+        fs_rank = (tot_files/comm_size)*rank + rank;
+        fe_rank = (tot_files/comm_size)*(rank+1) + rank + 1;
+    }
+    else
+    {
+        fs_rank = (tot_files/comm_size)*rank + tot_files%comm_size;
+        fe_rank = (tot_files/comm_size)*(rank+1) + tot_files%comm_size;
+    }
+    int file_counts[comm_size];
+    int file_displ[comm_size];
+    file_displ[0] = 0;
+    for (int i_rank=0; i_rank<comm_size; i_rank++) {
+        if (i_rank < tot_files%comm_size) {
+            file_counts[i_rank] = (tot_files/comm_size)+1;
+        }
+        else {
+            file_counts[i_rank] = tot_files/comm_size;
+        }
+        if (i_rank > 0) file_displ[i_rank] = file_displ[i_rank-1]+file_counts[i_rank-1];
+    }
+    int file_size = fe_rank - fs_rank;
+
+    int count[comm_size];
+    int displ[comm_size];
+
+    int image_size;
+
     while (it_ep < numb_epoch) {
 
         int label_i = 0;
         double runningAcc = 0.0, runningLoss = 0.0;
-	
-		
-		int fs_rank, fe_rank;
-		if (rank < tot_files%comm_size)
-		{
-			fs_rank = (tot_files/comm_size)*rank + rank;
-			fe_rank = (tot_files/comm_size)*(rank+1) + rank + 1;
-		}
-		else
-		{
-			fs_rank = (tot_files/comm_size)*rank + tot_files%comm_size;
-			fe_rank = (tot_files/comm_size)*(rank+1) + tot_files%comm_size;
-		}
-		int file_counts[comm_size];
-		int file_displ[comm_size];
-		file_displ[0] = 0;
-		for (int i_rank=0; i_rank<comm_size; i_rank++) {
-			if (i_rank < tot_files%comm_size) {
-				file_counts[i_rank] = (tot_files/comm_size)+1;
-			}
-			else {
-				file_counts[i_rank] = tot_files/comm_size;
-			}
-			if (i_rank > 0) file_displ[i_rank] = file_displ[i_rank-1]+file_counts[i_rank-1];
-		}
-		int file_size = fe_rank - fs_rank;
 
         int conv_h, pool_h;
 		
-		std::vector<vector<double>> proc_images;
-		std::vector<vector<vector<double>>> proc_conv_images;
-		std::vector<vector<vector<double>>> proc_pool_images;
         int hauteur, largeur;
+        if (it_ep == 0) {
+        clock_t begin_time = std::clock();
         for (int file_idx = fs_rank; file_idx < fe_rank; file_idx++)
         {
             std::string name = training_files[file_idx];
@@ -167,6 +181,9 @@ void output::Training_data(int numb_epoch, double alpha)
 			largeur = 0;
 
             m_image->loadImage(name, hauteur, largeur);
+            proc_images.push_back(m_image->m_ImageVector);
+            image_size = hauteur*largeur;
+            
 
             //Lancement de training
 			
@@ -175,38 +192,25 @@ void output::Training_data(int numb_epoch, double alpha)
             //fprintf(stderr,"H %d W %d \n",m_convol->getMatHeight(),m_convol->getMatWidth());
             m_pool->Pooling_parameters(m_convol->getConvMat(), m_convol->getMatHeight(), m_convol->getMatWidth());
 			pool_h = m_convol->getMatWidth();
-            proc_images.push_back(m_image->m_ImageVector);
 			proc_conv_images.push_back(m_convol->getConvMat());
 			proc_pool_images.push_back(m_pool->getPoolingMatrix());
 		}
-		
-		std::vector<std::vector<double>> global_images;
-		std::vector<std::vector<std::vector<double>>> global_conv_images;
-		std::vector<std::vector<std::vector<double>>> global_pool_images;
 
-		int count[comm_size];
-		int displ[comm_size];
-		int image_size = hauteur*largeur;
 		int conv_size = proc_conv_images[0][0].size();
 		int pool_size = proc_pool_images[0][0].size();
-		std::vector<double> simplified_vector (file_size*image_size);
-		std::vector<double> global_vector (tot_files*image_size);
-        //fprintf(stderr,"tot_files %d file_size %d image_size %d \n",tot_files,file_size,image_size);
-		transform_matrix_to_vector(proc_images, simplified_vector, file_size, image_size);
-        //fprintf(stderr,"proc_images_size %d proc_images_size2 %d \n",proc_images.size(),proc_images[0].size());
-		for (int i_rank =0; i_rank < comm_size; i_rank++) {
-			count[i_rank] = file_counts[i_rank]*image_size;
-			displ[i_rank] = file_displ[i_rank]*image_size;
-		}
-        //fprintf(stderr,"count %d displ %d \n",count[0],displ[0]);
-		MPI_Barrier(MPI_COMM_WORLD);
-		MPI_Gatherv(&simplified_vector[0], simplified_vector.size(), MPI_DOUBLE, &global_vector[0], count, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		//fprintf(stderr,"first okay \n");
+
+        simplified_vector.resize(file_size*image_size);
+        global_vector.resize(tot_files*image_size);
+        transform_matrix_to_vector(proc_images, simplified_vector, file_size, image_size);
+        for (int i_rank =0; i_rank < comm_size; i_rank++) {
+            count[i_rank] = file_counts[i_rank]*image_size;
+            displ[i_rank] = file_displ[i_rank]*image_size;
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Gatherv(&simplified_vector[0], simplified_vector.size(), MPI_DOUBLE, &global_vector[0], count, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
         if (rank == 0) {
-			global_images.resize(tot_files, std::vector<double> (image_size));
-            
-			transform_vector_to_matrix(global_images, global_vector, tot_files, image_size);
-            //fprintf(stderr,"%f  %f %f %f \n",global_images[0][100],global_vector[100],simplified_vector[100],proc_images[0][100]);
+            global_images.resize(tot_files, std::vector<double> (image_size));
+            transform_vector_to_matrix(global_images, global_vector, tot_files, image_size);
         }
 		
 		for (int i_rank =0; i_rank < comm_size; i_rank++) {
@@ -218,12 +222,9 @@ void output::Training_data(int numb_epoch, double alpha)
 		simplified_vector.resize(file_size*conv_size*8); //8 nbr of filters
 		global_vector.resize(tot_files*conv_size*8); //8 nbr of filters
 		transform_matrix3_to_vector(proc_conv_images, simplified_vector,file_size,8,conv_size);
-        //fprintf(stderr,"tot_files %d file_size %d conv_size %d \n",tot_files,file_size,image_size);
-        //fprintf(stderr,"proc_conv_images %d proc_conv_images2 %d proc_conv_images3 %d\n",proc_conv_images.size(),proc_conv_images[0].size(),proc_conv_images[0][0].size());
-        //fprintf(stderr,"count %d displ %d \n",count[0],displ[0]);
+
         MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Gatherv(&simplified_vector[0], simplified_vector.size(), MPI_DOUBLE, &global_vector[0], count, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		//fprintf(stderr,"second okay \n");
         if (rank == 0) {
 			global_conv_images.resize(tot_files, std::vector<std::vector<double>> (8, std::vector<double> (conv_size)));
 			transform_vector_to_matrix3(global_conv_images, global_vector, tot_files, 8, conv_size);
@@ -240,13 +241,16 @@ void output::Training_data(int numb_epoch, double alpha)
 		transform_matrix3_to_vector(proc_pool_images, simplified_vector,file_size,8,pool_size);
         MPI_Barrier(MPI_COMM_WORLD);
 		MPI_Gatherv(&simplified_vector[0], simplified_vector.size(), MPI_DOUBLE, &global_vector[0], count, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		//fprintf(stderr,"third okay \n");
         if (rank == 0) {
 			global_pool_images.resize(tot_files, std::vector<std::vector<double>> (8, std::vector<double> (pool_size)));
 			transform_vector_to_matrix3(global_pool_images, global_vector, tot_files, 8, pool_size);
-		}
+            fprintf(stderr,"pre-processing step took %f s \n",float( clock () - begin_time ) /  CLOCKS_PER_SEC);
+        }
+
+        }
 		
 		if (rank == 0) {
+        
         for (std::vector<std::string>::iterator it = training_files.begin(); it != training_files.end(); ++it)
         {
 		
