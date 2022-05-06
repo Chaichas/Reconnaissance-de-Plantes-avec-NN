@@ -13,8 +13,8 @@ Hidden contain the hidden layers in the backward phase, crucial for caching:
 
 void Convolution_layer::Hidden(const std::vector<double>& vect) { //caching
 
-    HiddenMat.clear(); //Clear the old HiddenMat
-    HiddenMat.resize(vect.size()); //Resize HiddenMat
+    //HiddenMat.clear(); //Clear the old HiddenMat
+    //HiddenMat.resize(vect.size()); //Resize HiddenMat
 
     //Copy: output.assign(input.begin(), input.end());
     HiddenMat.assign(vect.begin(), vect.end()); //output = HiddenMat
@@ -31,8 +31,10 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride_conv) + 1; //output convolution matrix width
 
     //initialization of the filter weights by random values (class Random_weights)
-    
+    //fprintf(stderr,"Hi");
 	if (initialization) {
+        HiddenMat.resize(vec_pixel.size());
+        ConvMat.resize(filter_number, std::vector<double> (ConvMat_height*ConvMat_width));
         filter_matrix.resize(filter_number, std::vector<double> (filter_height*filter_width));
         std::vector<double> simplified_filter (filter_number*filter_height*filter_width);
         if(rank==0) { // le filtre 
@@ -65,8 +67,10 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
         }
         initialization = false;
 	}
+    //fprintf(stderr,"Hello");
 
-    ConvMat.clear();
+    //ConvMat.clear();
+    
 
     //Convolution procedure for filter_number
     convolution_process(vec_pixel, 0); //1st filter
@@ -77,13 +81,14 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     convolution_process(vec_pixel, 5); //6th filter
     convolution_process(vec_pixel, 6); //7th filter
     convolution_process(vec_pixel, 7); //8th filter
-
+    //fprintf(stderr,"Hey");
     Hidden(vec_pixel); //hiding the last input
+    //fprintf(stderr,"How are you ");
 }
 
 void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx) {
-    std::vector<double> vec;
-
+    //std::vector<double> vec;
+    int count = 0;
     for (int ii = 0; ii < ConvMat_height; ii++) { //loop on the height of the convolution matrix
         for (int jj = 0; jj < ConvMat_width; jj++) { //loop on the width of the convolution matrix
 
@@ -95,42 +100,54 @@ void Convolution_layer::convolution_process(const std::vector<double>& pixel, in
                     double image = (pixel[((ii + kk) * (ConvMat_width + 2) + (jj + hh))]); //pixel value of the image stored in image
 
                     sum += (image * filter_matrix[idx][kk * filter_width + hh]); //sum of the pixel value * filter value
-
                 }
+
+                
             }
-            vec.push_back(sum); //storing sum value in vec		
+            //vec.push_back(sum); //storing sum value in vec	AM	
+            ConvMat[idx][count] = sum;
+            count++;
         }
     }
-    ConvMat.push_back(vec); //storing vec value in ConvMat
+    //ConvMat.push_back(vec); //storing vec value in ConvMat  AM
 }
 
 void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_out, double learn_rate)
 {
     //d_L_d_out is the loss gradient for this layer's outputs
     //filters with same shape as filter_matrix
-    std::vector<std::vector<double>> filters;
-    for (size_t i = 0; i < filter_number; i++) {
+    std::vector<std::vector<double>> filters (filter_number, std::vector<double> (filter_height * filter_width, 0.0));
+    /*for (size_t i = 0; i < filter_number; i++) {
         std::vector<double> v;
         for (int j = 0; j < (filter_height * filter_width); j++)
-            v.push_back(0);
-        filters.push_back(v);
-    }
+            //v.push_back(0); //AM
+            v[j] = 0; //AM
+        //filters.push_back(v); //AM
+        filters[i] = v; //AM
+    }*/
 
     //For keeping 3x3 reegions of last input
-    std::vector<std::vector<double>> regions;
+    std::vector<std::vector<double>> regions (ConvMat_height*ConvMat_width, std::vector<double> (filter_height*filter_width));
 
     //Loop for storing 3x3 regions into "regions"
+    int idx1, idx2;
+    idx1 = 0;
     for (int i = 0; i < ConvMat_height; i++)
     {
         for (int j = 0; j < ConvMat_width; j++) {
             //double sum = 0;
-            std::vector<double> v;
+            //std::vector<double> v;
+            idx2 = 0;
             for (int k = 0; k < filter_height; k++) {
                 for (int n = 0; n < filter_width; n++) {
-                    v.push_back(HiddenMat[((i + k) * (ConvMat_width + 2) + (j + n))]);
+                    //v.push_back(HiddenMat[((i + k) * (ConvMat_width + 2) + (j + n))]); 
+                    regions[idx1][idx2] = HiddenMat[((i + k) * (ConvMat_width + 2) + (j + n))];
+                    idx2++;
                 }
             }
-            regions.push_back(v);
+            //regions.push_back(v); //AM
+            //regions[j] = v;
+            idx1++;
         }
     }
 
@@ -139,7 +156,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
     for (int i = 0; i < ConvMat_height; i++) {
         for (int j = 0; j < ConvMat_width; j++) {
             //Loop for filters number
-            for (size_t k = 0; k < 2; k++) {
+            for (size_t k = 0; k < filter_number; k++) {
                 for (size_t m = 0; m < 3; m++) {
                     for (size_t n = 0; n < 3; n++) {
                         filters[k][m * 3 + n] += ((d_L_d_out[k][i * ConvMat_width + j] * regions[counter][m * 3 + n]));
