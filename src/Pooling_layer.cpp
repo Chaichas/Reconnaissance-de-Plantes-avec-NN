@@ -12,8 +12,8 @@ Hidden for implementing the backward phase, crucial for caching:
 
 void Pooling_layer::Hidden(const std::vector<std::vector<double>>& vect) { //caching
 
-    HiddenMat_input.clear(); //Clear the old HiddenMat_input
-    HiddenMat_input.resize(vect.size()); //Resize HiddenMat_input
+    //HiddenMat_input.clear(); //Clear the old HiddenMat_input
+    //HiddenMat_input.resize(vect.size()); //Resize HiddenMat_input
 
     //Copy: output.assign(input.begin(), input.end());
     HiddenMat_input.assign(vect.begin(), vect.end()); //output = HiddenMat_input
@@ -29,7 +29,12 @@ void Pooling_layer::Pooling_parameters(const std::vector<std::vector<double>>& v
     Pooling_height = input_height / Pooling_size; //Height of the output pooling matrix
     Pooling_width = input_width / Pooling_size; //Width of the output pooling matrix
 
-    Pooling_Matrix.clear(); //clear the last matrix
+    //Pooling_Matrix.clear(); //clear the last matrix
+	if (initialization) {
+		Pooling_Matrix.resize(Filter_number, std::vector<double> (Pooling_height*Pooling_width));
+		HiddenMat_input.resize(vec_convolution.size());
+		initialization = false;
+	}
 
     //Pooling procedure for the 8 filters used
     Pooling_process(vec_convolution, 0); //1st convolution matrix
@@ -49,26 +54,32 @@ void Pooling_layer::Pooling_parameters(const std::vector<std::vector<double>>& v
 //Pooling Process
 void Pooling_layer::Pooling_process(const std::vector<std::vector<double>>& pixel, int idx) {
 
-    std::vector<double> vec; //vector vec
+    std::vector<double> vec(Filter_height*Filter_width); //vector vec
+	int count2;
+	int count = 0;
 
     for (int ii = 0; ii < (Pooling_size * Pooling_height); ii += Pooling_size) {
         for (int jj = 0; jj < (Pooling_size * Pooling_width); jj += Pooling_size) {
-
-            std::vector<double> v; //initialize a vector v
+			count2 = 0;
+            //std::vector<double> v; //initialize a vector v
             for (int kk = 0; kk < Filter_height; kk++) {
                 for (int hh = 0; hh < Filter_width; hh++) {
 
-                    v.push_back(pixel[idx][((ii + kk) * (Pooling_width * Pooling_size) + (jj + hh))]); //store the elements of input matrix to the pooling layer
-                }
+                    //v.push_back(pixel[idx][((ii + kk) * (Pooling_width * Pooling_size) + (jj + hh))]); //store the elements of input matrix to the pooling layer
+					vec[count2] = pixel[idx][((ii + kk) * (Pooling_width * Pooling_size) + (jj + hh))];
+					count2++;
+				}
             }
 
             //To search the max element, we use the function: max_element(v.begin(), v.end());
-            double weightMax = *max_element(v.begin(), v.end()); //search the max of vector v elements
-            vec.push_back(weightMax); //store the max weight for each matrix bloc in vec
+            double weightMax = *max_element(vec.begin(), vec.end()); //search the max of vector v elements
+            //vec.push_back(weightMax); //store the max weight for each matrix bloc in vec
+			Pooling_Matrix[idx][count] = weightMax; //The output pooling matrix
+			count++;
         }
     }
 
-    Pooling_Matrix.push_back(vec); //The output pooling matrix
+    //Pooling_Matrix.push_back(vec); //The output pooling matrix
 }
 
 
@@ -79,9 +90,9 @@ void Pooling_layer::Pooling_process(const std::vector<std::vector<double>>& pixe
 std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std::vector<double>> dloss_dlayer_output) { //Backpropagation algorithm for Pooling layer
 
 	//std::vector<std::vector<double>> represents a 2D matrix
-	std::vector<std::vector<double>> dloss_dx; //x represents the inputs
+	std::vector<std::vector<double>> dloss_dx(Filter_number, std::vector<double>((Pooling_height * Pooling_size) * (Pooling_width * Pooling_size), 0.0)); //x represents the inputs
 
-	for (size_t ii = 0; ii < Filter_number; ii++) {
+	/*for (size_t ii = 0; ii < Filter_number; ii++) {
 
 		std::vector<double> vec; //initializing vec
 		for (int jj = 0; jj < ((Pooling_height * Pooling_size) * (Pooling_width * Pooling_size)); jj++)
@@ -89,21 +100,23 @@ std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std:
 			vec.push_back(0); //vec of zeros
 		dloss_dx.push_back(vec); //storing vec elements in dloss_dx
 
-	}
+	}*/
 
 	for (int idx = 0; idx < Filter_number; idx++) {
 
-		std::vector<double> vec; //initializing vec
+		//std::vector<double> vec; //initializing vec
+		std::vector<double> v(Filter_height*Filter_width);
+		int count = 0;
 		int iter = 0; //number of iteration
 
 		for (int ii = 0; ii < (Pooling_size * Pooling_height); ii += Pooling_size) {
 			for (int jj = 0; jj < (Pooling_size * Pooling_width); jj += Pooling_size) {
-				std::vector<double> v;
+				
 
 				for (int kk = 0; kk < Filter_height; kk++) {
 					for (int hh = 0; hh < Filter_width; hh++) {
-
-						v.push_back(HiddenMat_input[idx][(ii + kk) * (Pooling_width * Pooling_size) + (jj + hh)]);
+						v[count] = HiddenMat_input[idx][(ii + kk) * (Pooling_width * Pooling_size) + (jj + hh)];
+						//v.push_back(HiddenMat_input[idx][(ii + kk) * (Pooling_width * Pooling_size) + (jj + hh)]);
 					}
 				}
 

@@ -9,7 +9,7 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
 {
     //Recuperation de l'image
 
-    m_ImageVector.clear();
+    //m_ImageVector.clear();
     Mat* image = new Mat();
     //Creation et lecture de l'image
     (*image) = imread(str_Path, IMREAD_COLOR);
@@ -23,15 +23,20 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
     //Recuperation des dimension de l'image
     hauteur = image->rows;
     largeur = image->cols;
+    if(initialization) {
+        m_ImageVector.resize(hauteur*largeur);
+        initialization = false;
+    }
 
     //Generation de vecteur RVB
-    this->create_canal(image);
+    this->create_canal(image); 
     delete image;
 }
 
 void Data::create_canal(Mat* image)
 {
     int i = 0;
+    int idx = 0;
     while (i < image->rows)
     {
         int j = 0;
@@ -44,7 +49,9 @@ void Data::create_canal(Mat* image)
 
             //normalisation des valeurs de pixels dans la plage [-0.5, 0.5] pour ne pas ralentir le processus d'apprentissage
             somme = (somme / 765) - 0.5;
-            m_ImageVector.push_back(somme);
+            //m_ImageVector.push_back(somme);
+            m_ImageVector[idx] = somme;
+            idx++;
             j++;
         }
         i++;

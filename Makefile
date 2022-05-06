@@ -6,8 +6,8 @@ TARGET = CNN
 CC=mpiCC
 
 # Compiling flags
-CFLAGS = -O3 -march=native -Wall -mavx -g
-#CFLAGS = -O3
+#CFLAGS = -O3 -march=native -Wall -mavx -g
+CFLAGS = -O3
 
 # linking flags & libraries
 LFLAGS = -I/usr/include/opencv4/ -lopencv_core -lopencv_videoio -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs

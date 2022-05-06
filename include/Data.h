@@ -10,6 +10,7 @@ class Data
 private:
 	
 	void create_canal(Mat* image);
+	bool initialization = true;
 
 public:
 	Data();

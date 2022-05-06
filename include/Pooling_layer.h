@@ -39,5 +39,6 @@ private:
 
 	int Pooling_height, Pooling_width;
 	int width, height;
+	bool initialization = true;
 };
 
