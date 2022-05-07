@@ -27,14 +27,16 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride_conv) + 1; //output convolution matrix height
     ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride_conv) + 1; //output convolution matrix width
 
+    //AM: Getting rank and size
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&size);
     
     filter_matrix.resize(filter_number, std::vector<double> (filter_height*filter_width));
-
+    //AM: simplified_filter used for data sharing
     std::vector<double> simplified_filter (filter_number*filter_height*filter_width);
-	if(rank==0) { // le filtre 
+	if(rank==0) { // The filter
+        // AM: Computing the filter on only one proc to be shared with the others
     //initialization of the filter weights by random values (class Random_weights)
 		if (initialization) {
 			random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
@@ -47,7 +49,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 			}
 			initialization = false;
 		}
-		// transformation de filter_matrix en un vecteur 1d pour un partage plus facile
+		//AM: transformation of filter_matrix to 1D vector to be shared later
 		size_t idx = 0;
 		for (size_t ii = 0; ii < filter_number; ii++) {
 			for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
@@ -56,9 +58,9 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 			}
 		}
 	}
+    //AM: Brodcasting the filter to other processors
 	MPI_Bcast(&simplified_filter[0],filter_number*filter_height*filter_width,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    //std::fprintf(stderr,"Iam rank: blala %d, %ld \n",rank,simplified_filter.size());
-	// retransformation du vecteur en matrice de filtre
+	// AM: Retransformation of vecotr to a filter matrix
 	for (size_t ii = 0; ii < filter_number; ii++) {
 		for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
 			filter_matrix[ii][jj] = simplified_filter[ii*filter_height*filter_width+jj];

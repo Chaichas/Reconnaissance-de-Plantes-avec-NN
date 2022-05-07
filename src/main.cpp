@@ -4,16 +4,18 @@
 
 int main(int argc, char **argv)
 {
+	//AM: Initializing the MPI
 	MPI_Init(&argc, &argv);
 
 	std::string trainingPath = "trainset_3665";
 	std::string testingPath = "testset_700";
 	output* cnn = new output(trainingPath, testingPath);
-	// Pour une grande precision, on doit definir plus d'epoch
-	// Le deuxieme parametre est le taux d'apprentissage
+
 	cnn->Training_data(3, 0.003);
 	cnn->Testing_data();
 	delete cnn;
+
+	//AM: Finalizing the MPI
 	MPI_Finalize();
 	return 0;
 }

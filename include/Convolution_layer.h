@@ -15,6 +15,7 @@
 #define filter_height 3 //hight of the filter
 #define filter_width 3 //width of the filter
 #define padding 0 //padding (explained in the descriptive)
+//AM: Using stride_conv indtead of stride due to compile error 
 #define stride_conv 1 //offset
 #define pooling_size 2 //pooling size
 

@@ -6,14 +6,15 @@
 Data::Data() {}
 Data::~Data() {}
 
+//AM: This function returns the length of every local image and its position in the complete image
 void Data::decomposition(const int comm_size, const int total_rows, std::vector<int>& local_images_height)
 {
-    int rows_output; // hauteur de la matrice à la sortie de max_pooling;
-    rows_output = (total_rows-2)/2; // hypothèses: total_rows est paire
+    int rows_output; // AM: length of the matrix as output of the max_pooling;
+    rows_output = (total_rows-2)/2; // AM: Assumption: total_rows is even
 
-    // La décomposition est basé sur rows_output
+    // AM: Decomposition based on rows_output
 	for (int i_rank=0; i_rank<comm_size; i_rank++) {
-        // décomposition optimale pour load balance
+        // AM: Efficient decomposition for load balance
 		if (i_rank < rows_output%comm_size) {
 			local_images_height[i_rank] = (rows_output/comm_size)+1;
 		}
@@ -21,18 +22,19 @@ void Data::decomposition(const int comm_size, const int total_rows, std::vector<
 			local_images_height[i_rank] = rows_output/comm_size;
 		}
        
-        // chaque ligne de la matrice max_pooling correspond à 2 ligne de la matrice convolution
+        // AM: Every line of the max_pooling matrix corresponds to 2 lines of the convolution matrix
         local_images_height[i_rank] *= 2;
         
-        // le fitre de convolution a besoin de deux lignes supplémentaires
+        // AM: The convolution filter needs 2 additional lines
         local_images_height[i_rank] += 2;
-        //fprintf(stderr, "local_image_height %d \n",local_images_height[i_rank]);
+        //fprintf(stderr, "local_image_height %d \n",local_images_height[i_rank]); //AM: Debugging
 	}
 }
 
 void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
 {
-    //Recuperation de l'image
+    //AM: This implementation is inspired from: https://gist.github.com/Xonxt/1ec2f58c2231d5c643dc83ddcd61e395
+    //AM: Getting MPI rank and size
     int rank, comm_size;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&comm_size);
@@ -40,8 +42,7 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
     Mat* image = new Mat();
 
     local_images_height.resize(comm_size);
-    //int local_images_height[comm_size]; //Tab contenant la taille des images locales
-    int displ[comm_size]; //position de l'image locale ds celle globale
+    int displ[comm_size]; //AM: position of the local image in the global one
     int channels;
     int elmt_size;
     int cols;
@@ -50,20 +51,25 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
 
         m_ImageVector.clear();
        
-        //Creation et lecture de l'image par un seul proc
+        //AM: Creation and reading of the image by one proc
         (*image) = imread(str_Path, IMREAD_COLOR); //imread from opencv
         channels = image->channels();
         elmt_size = image->step[0];
         cols = image->cols;
-        decomposition(comm_size, image->rows, local_images_height); //cette fonction retourne la hauteur de chaque image locale et sa position dans l'image complete
+        //AM: This function returns the length of every local image and its position in the complete image
+        decomposition(comm_size, image->rows, local_images_height);
         //fprintf(stderr,"local_height before Bcast %d \n",local_images_height[0]);
     }
+
+    // AM: Broadcasting the needed information (image height width and channel size) for receiving the image data
     MPI_Bcast(&local_images_height[0],comm_size,MPI_INT,0,MPI_COMM_WORLD);
     MPI_Bcast(&channels, 1, MPI_INT, 0, MPI_COMM_WORLD );
     MPI_Bcast(&elmt_size, 1, MPI_INT, 0, MPI_COMM_WORLD );
     MPI_Bcast(&cols, 1, MPI_INT, 0, MPI_COMM_WORLD );
-    MPI_Barrier( MPI_COMM_WORLD ); //synchronisation de procs
+    MPI_Barrier( MPI_COMM_WORLD ); //AM: procs synchronization
+
     //fprintf(stderr,"local_height after Bcast %d \n",local_images_height[0]);
+    //AM: Computing the count and displ arrays to be used by scatterv.
     int local_images_sizes[comm_size];
     displ[0] = 0;
     for (int i_rank = 0; i_rank < comm_size; i_rank++) {
@@ -72,17 +78,15 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
     }
     uchar* local_buffer;
     local_buffer = new uchar[local_images_sizes[rank]];
-    MPI_Barrier( MPI_COMM_WORLD ); //synchronisation de procs, pour avoir sure que les processeurs ont alloce le buffer
+    MPI_Barrier( MPI_COMM_WORLD ); //AM : Procs synchronization to be sure that procs allocated the buffer
 
-    // scatterv les images entre les procs (taille d'images locales variables)
+    // AM: scatterv of images between procs (variable size of local images)
     MPI_Scatterv( image->data, local_images_sizes, displ, MPI_UNSIGNED_CHAR, local_buffer, local_images_sizes[rank], MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD );
 
     hauteur = local_images_height[rank];
     //fprintf(stderr,"hauteur %d \n",hauteur);
     largeur = cols;
-    // synchronisation de traitement d image
-    //MPI_Barrier( MPI_COMM_WORLD );
-    
+
     /*
     if(!image.data)
     {
@@ -96,6 +100,7 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
 
     //Generation de vecteur RVB
     //this->create_canal(image);
+    //AM: Summing RVB in a parallel way
     double R,V,B,somme;
     for ( size_t i = 0; i < local_images_sizes[rank]; i += channels ) {
         R = (double)local_buffer[i];
@@ -111,6 +116,7 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
 }
 
 /*
+//AM: Not needed anymore as it is done in a parallel way
 void Data::create_canal(Mat* image)
 {
     int i = 0;

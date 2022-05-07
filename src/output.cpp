@@ -44,27 +44,9 @@ output::~output()
 }
 */
 //-------------------------------------------Prediction Part------------------------------------------------------
-/*
-void output::transform_matrix_to_vector(std::vector<std::vector<double>> matrix, std::vector<double> simplified_vector, const int dim1, const int dim2) {
-    size_t idx = 0;
-    for (size_t ii = 0; ii < dim1; ii++) {
-        for (size_t jj = 0; jj < dim2; jj++) {
-            simplified_vector[idx] = matrix[ii][jj];
-            idx++;
-        }
-    }
-}
-
-void output::transform_vector_to_matrix(std::vector<std::vector<double>> matrix, std::vector<double> simplified_vector, const int dim1, const int dim2) {
-    for (size_t ii = 0; ii < dim1; ii++) {
-		for (size_t jj = 0; jj < dim2; jj++) {
-			filter_matrix[ii][jj] = simplified_vector[ii*dim2+jj];
-		}
-	}
-}
-*/
 std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
 {
+    //AM : Getting the MPI rank and size 
     int rank, comm_size;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&comm_size);
@@ -72,15 +54,17 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
     m_convol->convolution_parameters(m_image->get_fusion_canal(), hauteur, largeur);
     m_pool->Pooling_parameters(m_convol->getConvMat(), m_convol->getMatHeight(), m_convol->getMatWidth());
 
-// --------------------- fin du calcul parallel --------------- 
+// --------------------- AM: End of parallel Calculation --------------- 
 
-	// rassemblement de l'output de max_pooling
+	// AM: Gathering the output of the max_pooling
 
+    // AM: Total size of the pooling image and the convolution image
     int pool_size = m_pool->getPoolingHeight() * m_pool->getPoolingWidth();
 	int convol_size = m_convol->getMatHeight() * m_convol->getMatWidth();
 
     //fprintf(stderr, "pool_size %d, convol_size %d, pHeight %d hauteur %d \n", pool_size, convol_size, m_pool->getPoolingHeight(),hauteur);
 
+    //AM: Computing counts and displ arrays to be used later for Gatherv
     int counts[comm_size];
     int displ[comm_size];
     displ[0] = 0;
@@ -112,7 +96,7 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
         std::copy(&new_global_Matrix[ii][0], &new_global_Matrix[ii][global_size], m_pool->Pooling_Matrix[ii].begin());
     }*/
 	
-	// Rassemblement de hidden matrix de convolution layer
+	// AM: Assembly of the hidden matrix of convolution layer
     m_convol->ConvMat_height = 0;
     global_size = 0;
     for (int i_rank = 0; i_rank < comm_size-1; i_rank++) {
@@ -137,7 +121,7 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
     m_convol->HiddenMat.resize(global_size);
 	m_convol->HiddenMat.assign(global_vec.begin(), global_vec.end());
     
-	// Rassemblement de hidden matrix de pooling layer
+	// AM: Assembly of the hidden matrix of pooling layer
     global_size = 0;
 	for (int i_rank = 0; i_rank < comm_size; i_rank++) {
         counts[i_rank] = (m_image->local_images_height[i_rank]-2)*m_convol->getMatWidth();
@@ -174,7 +158,7 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
     new_global_Matrix.shrink_to_fit();
 
 
-    //--------------- Black Box starts here (comme dans le calcul séquentiel) ------------------------------------------------------------------
+    //--------------- AM: Black Box starts here (like in the sequential calculation) ------------------------------------------------------------------
     //fprintf(stderr,"starting softmax \n");
     std::vector<double> proba = m_softmax->Softmax_start(m_pool->getPoolingMatrix(), m_pool->getPoolingHeight(), m_pool->getPoolingWidth());
 
@@ -195,10 +179,12 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
 
 void output::Training_data(int numb_epoch, double alpha)
 {
+    //AM: Getting the MPI rank and size
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&size);
 
+    //AM: Display on only one proc
     if(rank==0) 
         std::cout << "--------------Start Training ----------" << '\n';
 
@@ -238,6 +224,7 @@ void output::Training_data(int numb_epoch, double alpha)
         label_i++;
 
         //Affichage de perte et de la precison pour chaque epoch 
+        //AM: Display on only one proc
         if(rank == 0)
             std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc / label_i) * 100 << " %" << '\n';
         runningLoss = 0.0;
@@ -250,7 +237,7 @@ void output::Training_data(int numb_epoch, double alpha)
 
 void output::Testing_data()
 {
-
+    //AM: Getting rank and size
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -258,6 +245,7 @@ void output::Testing_data()
     int label_i = 0;
     double runningAcc = 0.0, runningLoss = 0.0;
 
+    //AM: Displaying on only one proc
     if(rank == 0)
         std::cout << "-----------------Testing Data -------------------" << '\n';
 
@@ -290,6 +278,7 @@ void output::Testing_data()
 
     int wrong = label_i - right;
     if(rank == 0) {
+        //AM: Displaying on only one proc
         std::cout << "--------------------------------Result of testing-------------------------" << '\n';
 
         std::cout << "Average Loss" << runningLoss / label_i << " , Accuracy " << '\n';
