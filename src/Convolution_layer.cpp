@@ -26,12 +26,13 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     ConvMat_height = ((inputImage_height - filter_height + 2 * padding) / stride_conv) + 1; //output convolution matrix height
     ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride_conv) + 1; //output convolution matrix width
 
+    //AM: Getting the MPI rank and size
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&size);
     
     filter_matrix.resize(filter_number, std::vector<double> (filter_height*filter_width));
-
+    //AM: The simplified_filter is used for easier MPI data communication
     std::vector<double> simplified_filter (filter_number*filter_height*filter_width);
 	if(rank==0) { // le filtre 
     //initialization of the filter weights by random values (class Random_weights)
@@ -46,7 +47,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 			}
 			initialization = false;
 		}
-		// transformation de filter_matrix en un vecteur 1d pour un partage plus facile
+		// AM: transformation of filter_matrix to a 1D vector for easier data sharing in MPI
 		size_t idx = 0;
 		for (size_t ii = 0; ii < filter_number; ii++) {
 			for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
@@ -55,9 +56,10 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 			}
 		}
 	}
+    // AM: Brodcasting the filter to other procs
 	MPI_Bcast(&simplified_filter[0],filter_number*filter_height*filter_width,MPI_DOUBLE,0,MPI_COMM_WORLD);
-    //std::fprintf(stderr,"Iam rank: blala %d, %ld \n",rank,simplified_filter.size());
-	// retransformation du vecteur en matrice de filtre
+	
+    // AM: retransformation of the vector to a filter matrix
 	for (size_t ii = 0; ii < filter_number; ii++) {
 		for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
 			filter_matrix[ii][jj] = simplified_filter[ii*filter_height*filter_width+jj];
@@ -66,11 +68,14 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 
     ConvMat.clear();
     ConvMat.resize(filter_number, std::vector<double> (ConvMat_height*ConvMat_width));
+
+    // AM: simplified_filter is the computed convolution matrix
     proc_ConvMat.clear();
-	// line start and line end for each proc
+
+	// AM: line start and line end for each proc. They star in 1 because the filter needs an additional row
 	int ls_rank = 1;
 	int le_rank = 1;
-	//optimisation de repartition entre procs (load distribution)
+	//AM: optimization of the repartition of the image row between the procs (load distribution)
 	if (rank < ConvMat_height%size)
 	{
 		ls_rank += (ConvMat_height/size)*rank + rank;
@@ -82,32 +87,23 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 		le_rank += (ConvMat_height/size)*(rank+1) + ConvMat_height%size;
 	}
 
-	int proc_ConvMat_height = le_rank-ls_rank;
+	int proc_ConvMat_height = le_rank-ls_rank; 
+    //AM: We add 1 to the end row, with was originally substracted from the start row, necessary for the filter 
     le_rank++;
     ls_rank--;
 	//std::vector<double> vec_pixel_rank (inputImage_width*(proc_ConvMat_height+2));
     //vec_pixel_rank.assign(vec_pixel.begin()+inputImage_width*(ls_rank-1),vec_pixel.begin()+inputImage_width*(le_rank+1));
 	//std::copy(&vec_pixel[inputImage_width*(ls_rank-1)], &vec_pixel[inputImage_width*(le_rank+1)], vec_pixel_rank.begin());
-
-	// distribution de l'image sur les différent procs à partir du rang 0
-	// if(rank==0) {
-		// for(i_rank=0; i<size; i_rank++) {
-			// MPI_SEND(&vec_pixel[], MPI_DOUBLE, i_rank, 0, MPI_COMM_WORLD);
-		// }
-	// }
-	// reception d'une partie de l'image
-	// std::vector<double> vec_pixel_rank;
-	// vec_pixel_rank.resize();
-	// MPI_RECV(&vec_pixel_rank[0], , 0, MPI_COMM_WORLD, &status);
 	
     //Convolution procedure for filter_number
 	for (size_t ii = 0; ii < filter_number; ii++) {
 		convolution_process(vec_pixel, ii, ls_rank, le_rank);
 	}
 	
+    //AM: Computing counts and displ needed for gatherv
 	int counts[size];
 	int displ[size];
-    std::vector<double> global_vec;
+    std::vector<double> global_vec; //AM: used to gather all data at once
     if (rank == 0) {
         displ[0] = 0;
         for (int i_rank=0; i_rank<size; i_rank++) {
@@ -123,6 +119,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
         
         global_vec.resize(ConvMat_height*ConvMat_width*filter_number);
     }
+    //AM: The simplified filter is used again for easier MPI communication sharing
 	simplified_filter.resize(proc_ConvMat_height*ConvMat_width*filter_number);
 	int idx = 0;
     for (int ii = 0; ii < filter_number; ii++) {
@@ -132,15 +129,17 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
         }
     }
     
+    //AM: Check that all processors are ready
     MPI_Barrier(MPI_COMM_WORLD);
+    //AM: Gather all computed convolution matrices by the processors in rank 0. The gathered global vec contains the 8 filters (Approach 1bis)
 	MPI_Gatherv(&simplified_filter[0], proc_ConvMat_height*ConvMat_width*filter_number, MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	if (rank == 0) {
+        //AM: After receiving all the data, rank 0 will rearrange them and store them in ConvMat
         for (int ii = 0; ii < filter_number; ii++) {
             idx = 0;
             for (int i_rank=0; i_rank<size; i_rank++) {
                 int nbr_per_filter = counts[i_rank]/filter_number;
                 //fprintf(stderr,"nbr_per_filter %d \n",nbr_per_filter);
-                //nbr_per_filter *= ii;
                 int nbr_per_filter_ii = ii * nbr_per_filter;
                 for (int jj=0; jj<nbr_per_filter; jj++) {
                     ConvMat[ii][idx] = global_vec[displ[i_rank]+nbr_per_filter_ii+jj];
@@ -150,6 +149,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
         }
     }
     //fprintf(stderr,"size %d \n",vec_pixel.size());
+    //AM: Approach 1 before modification to approach 1bis. We gather the data for each filter without mixing them
 	/*MPI_Barrier(MPI_COMM_WORLD);
 	//std::vector<double> simplified_proc_ConvMat (ConvMat_width*proc_ConvMat_height*filter_number);
 	//std::vector<double> global_vec (ConvMat_height*ConvMat_width);
@@ -163,7 +163,6 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     MPI_Barrier(MPI_COMM_WORLD);
 
     Hidden(vec_pixel); //hiding the last input
-    //fprintf(stderr,"hello");
 }
 
 void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx, const int ls_rank, const int le_rank) {

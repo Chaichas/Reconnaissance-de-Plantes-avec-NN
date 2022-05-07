@@ -16,6 +16,7 @@
 #define filter_height 3 //hight of the filter
 #define filter_width 3 //width of the filter
 #define padding 0 //padding (explained in the descriptive)
+//AM: Using stride_conv instead of stride due to compiling error with MPI
 #define stride_conv 1 //offset
 #define pooling_size 2 //pooling size
 
@@ -41,7 +42,7 @@ public:
 private:
 
 	std::vector<std::vector<double>> ConvMat; //convolution matrix filled with values
-	std::vector<std::vector<double>> proc_ConvMat; // temporary convolution matrix filled by only one proc
+	std::vector<std::vector<double>> proc_ConvMat; //AM: temporary convolution matrix filled by only one proc
 	
 	std::vector<std::vector<double>> filter_matrix; //Filter matrix filled with values
 

@@ -45,25 +45,28 @@ output::~output()
 
 std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
 {
+    //AM: Getting rank and size for MPI
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
+    //AM: The convolution layer is run by all the procs.
     m_convol->convolution_parameters(m_image->get_fusion_canal(), hauteur, largeur);
     if (rank==0) {
-    m_pool->Pooling_parameters(m_convol->getConvMat(), m_convol->getMatHeight(), m_convol->getMatWidth());
-    std::vector<double> proba = m_softmax->Softmax_start(m_pool->getPoolingMatrix(), m_pool->getPoolingHeight(), m_pool->getPoolingWidth());
+        //AM: The rest of the code is performed on  one proc, as normal
+        m_pool->Pooling_parameters(m_convol->getConvMat(), m_convol->getMatHeight(), m_convol->getMatWidth());
+        std::vector<double> proba = m_softmax->Softmax_start(m_pool->getPoolingMatrix(), m_pool->getPoolingHeight(), m_pool->getPoolingWidth());
 
-    loss = -log(proba[c]);
+        loss = -log(proba[c]);
 
-    //auto  max = std::max_element(proba.begin(), proba.end());
-    int proba_i = std::distance(proba.begin(), std::max_element(proba.begin(), proba.end()));
+        //auto  max = std::max_element(proba.begin(), proba.end());
+        int proba_i = std::distance(proba.begin(), std::max_element(proba.begin(), proba.end()));
 
-    if (proba_i == c)
-        acc = 1;
-    else
-        acc = 0;
+        if (proba_i == c)
+            acc = 1;
+        else
+            acc = 0;
 
-    return proba;
+        return proba;
     }
     else{
         std::vector<double> v_null;
@@ -75,9 +78,11 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
 
 void output::Training_data(int numb_epoch, double alpha)
 {
+    //AM: Getting MPI rank
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
+    //AM: Displaying output on only one rank
     if(rank==0) 
         std::cout << "--------------Start Training ----------" << '\n';
 
@@ -116,13 +121,12 @@ void output::Training_data(int numb_epoch, double alpha)
         }
         label_i++;
         if (rank == 0) {
-        
-
-        //Affichage de perte et de la precison pour chaque epoch 
-        if(rank == 0)
-            std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc / label_i) * 100 << " %" << '\n';
-        runningLoss = 0.0;
-        runningAcc = 0.0;
+            //AM: Displaying output on only rank
+            //Affichage de perte et de la precison pour chaque epoch 
+            if(rank == 0)
+                std::cout << "Epoch " << it << " : Average Loss " << runningLoss / label_i << " , Accuracy " << (runningAcc / label_i) * 100 << " %" << '\n';
+            runningLoss = 0.0;
+            runningAcc = 0.0;
         }
         it++;
     }
@@ -132,13 +136,14 @@ void output::Training_data(int numb_epoch, double alpha)
 
 void output::Testing_data()
 {
-
+    //AM: Getting MPI rank
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
     int label_i = 0;
     double runningAcc = 0.0, runningLoss = 0.0;
 
+    //AM: Displaying output on only one rank
     if(rank == 0)
         std::cout << "-----------------Testing Data -------------------" << '\n';
 
@@ -171,6 +176,7 @@ void output::Testing_data()
 
     
     if(rank == 0) {
+        //AM: Displaying output on only one rank
         int wrong = label_i - right;
         std::cout << "--------------------------------Result of testing-------------------------" << '\n';
 
