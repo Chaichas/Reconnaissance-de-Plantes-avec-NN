@@ -26,6 +26,7 @@ public:
 
 	std::vector<std::vector<double>> BackPropagation(std::vector<std::vector<double>> dloss_dlayer_output); //Backpropagation
 
+	// AM: Moving the Hidden to public to be used after the pre-processing step
 	void Hidden(const std::vector<std::vector<double>>& vect); //hidding the last input
 
 private:
@@ -39,6 +40,7 @@ private:
 
 	int Pooling_height, Pooling_width;
 	int width, height;
-	bool initialization = true;
+	//AM: Added bool variable for initial resizing of vectors
+	bool initialization = true; 
 };
 

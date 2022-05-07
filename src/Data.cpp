@@ -23,7 +23,8 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
     //Recuperation des dimension de l'image
     hauteur = image->rows;
     largeur = image->cols;
-    if(initialization) {
+    if(initialization) { // AM: new added test
+        // AM: Resizing vectors only at initialization
         m_ImageVector.resize(hauteur*largeur);
         initialization = false;
     }
@@ -35,6 +36,7 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
 
 void Data::create_canal(Mat* image)
 {
+    //AM: There is no push_back anymore :D
     int i = 0;
     int idx = 0;
     while (i < image->rows)

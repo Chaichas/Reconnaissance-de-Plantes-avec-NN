@@ -15,6 +15,7 @@
 #define filter_height 3 //hight of the filter
 #define filter_width 3 //width of the filter
 #define padding 0 //padding (explained in the descriptive)
+// AM: using stride_conv instead of stride due to MPI error during compilation
 #define stride_conv 1 //offset
 #define pooling_size 2 //pooling size
 
@@ -36,6 +37,7 @@ public:
 	const std::vector<std::vector<double>>& getConvMat() const { return ConvMat; }
 	void static random_weights(double nb_filters, double nb_weights, std::vector<std::vector<double>>& filter_matrix);
 
+	// AM: Moving the Hidden to public to be used after the pre-processing step
 	void Hidden(const std::vector<double>& vect);
 
 	std::vector<double> HiddenMat; //Hidding of inputs 

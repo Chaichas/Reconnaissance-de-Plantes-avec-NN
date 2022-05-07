@@ -3,11 +3,11 @@
 # project name
 TARGET = CNN
 
-CC=mpiCC
+CC=mpiCC #AM: To run the code with MPI for C++ code (On OB1)
 
 # Compiling flags
 #CFLAGS = -O3 -march=native -Wall -mavx -g
-CFLAGS = -O3
+CFLAGS = -Wall -O3 #AM: chosen compilation flag
 
 # linking flags & libraries
 LFLAGS = -I/usr/include/opencv4/ -lopencv_core -lopencv_videoio -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs
@@ -16,7 +16,6 @@ LFLAGS = -I/usr/include/opencv4/ -lopencv_core -lopencv_videoio -lopencv_highgui
 # Proper directories 
 SRCDIR = src
 INCDIR = include
-
 
 all: program
 

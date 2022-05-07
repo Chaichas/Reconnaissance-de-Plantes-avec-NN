@@ -16,6 +16,7 @@ void Softmax_layer::Flatten(const std::vector<std::vector<double>>& img_input, i
 
 void Softmax_layer::Hidden()
 {
+    // AM: The hidden matrix can be sized only once, then we do only the assign
     //Effacer le dernier cache et redimensionner
     //mCachedFlatten.clear();
     //mCachedTotal.clear();
@@ -43,7 +44,7 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
         mBiases.assign(ND, 0.0);
 
         //Distribution de nombres aléatoires qui produit des valeurs  virgule flottante selon une distribution normale
-        mWeights.resize(mLength, std::vector<double> (ND)); // AM: initialisation de la taille du filtre suite à la modification de random_weights
+        mWeights.resize(mLength, std::vector<double> (ND)); // AM: initialization of the filter size following the modification of random_weights
         Convolution_layer::random_weights(mLength, ND, mWeights);
 
 
@@ -59,6 +60,8 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
         mTotal.resize(ND);
         mCachedTotal.resize(mTotal.size());
     }
+
+    // AM: Removing push_back in the rest of the function
 
     //mFlatten.clear();//Effacer le dernier aplatissement de l'entrée
     //mTotal.clear();//Effacer la derniere prédiction 

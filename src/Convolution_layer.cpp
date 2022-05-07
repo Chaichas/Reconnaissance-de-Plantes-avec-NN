@@ -13,6 +13,7 @@ Hidden contain the hidden layers in the backward phase, crucial for caching:
 
 void Convolution_layer::Hidden(const std::vector<double>& vect) { //caching
 
+    // AM: The hidden matrix can be sized only once, then we do only the assign
     //HiddenMat.clear(); //Clear the old HiddenMat
     //HiddenMat.resize(vect.size()); //Resize HiddenMat
 
@@ -23,6 +24,7 @@ void Convolution_layer::Hidden(const std::vector<double>& vect) { //caching
 
 //in convolution we use the whole volume of the input matrix n*n*channels(RGB, 3)
 void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pixel, int inputImage_height, int inputImage_width) {
+    // AM: Getting rank and size for MPI communication
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
     MPI_Comm_size(MPI_COMM_WORLD,&size);
@@ -31,13 +33,16 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     ConvMat_width = ((inputImage_width - filter_width + 2 * padding) / stride_conv) + 1; //output convolution matrix width
 
     //initialization of the filter weights by random values (class Random_weights)
-    //fprintf(stderr,"Hi");
 	if (initialization) {
+        // AM: Resizing vectors only at initialization
         HiddenMat.resize(vec_pixel.size());
         ConvMat.resize(filter_number, std::vector<double> (ConvMat_height*ConvMat_width));
+        regionsBack.resize(ConvMat_height*ConvMat_width, std::vector<double> (filter_height*filter_width));
         filter_matrix.resize(filter_number, std::vector<double> (filter_height*filter_width));
+
+        // AM: the simplified_filter allows to bcast the 8 filters by bloc
         std::vector<double> simplified_filter (filter_number*filter_height*filter_width);
-        if(rank==0) { // le filtre 
+        if(rank==0) { // The filter
 			random_weights(filter_number, filter_height * filter_width, filter_matrix); //initialization of weights with random values
 
 			//normalizing wight values, Ref3
@@ -46,7 +51,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
 					filter_matrix[ii][jj] = (double)filter_matrix[ii][jj] / (double)(filter_height * filter_width); //normalized filter
 				}
 			}
-            // transformation de filter_matrix en un vecteur 1d pour un partage plus facile
+            // AM: transformation of the filter_matrix in 1D vector for a simple sharing
             size_t idx = 0;
             for (size_t ii = 0; ii < filter_number; ii++) {
                 for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
@@ -56,23 +61,23 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
             }
 		}
 
+        // AM: Brodcasting filters for other procs
         MPI_Bcast(&simplified_filter[0],filter_number*filter_height*filter_width,MPI_DOUBLE,0,MPI_COMM_WORLD);
         MPI_Barrier(MPI_COMM_WORLD);
-        //std::fprintf(stderr,"Iam rank: blala %d, %ld \n",rank,simplified_filter.size());
-        // retransformation du vecteur en matrice de filtre
+
+        // AM: Retransformation if vector to a matrix of filters
         for (size_t ii = 0; ii < filter_number; ii++) {
             for (size_t jj = 0; jj < (filter_height * filter_width); jj++) {
                 filter_matrix[ii][jj] = simplified_filter[ii*filter_height*filter_width+jj];
             }
         }
         initialization = false;
-        regionsBack.resize(ConvMat_height*ConvMat_width, std::vector<double> (filter_height*filter_width));
 	}
-    //fprintf(stderr,"Hello");
 
+    //AM: cleaning and resizing vectors is not efficient :D
     //ConvMat.clear();
     
-
+    
     //Convolution procedure for filter_number
     convolution_process(vec_pixel, 0); //1st filter
     convolution_process(vec_pixel, 1); //2sd filter
@@ -82,12 +87,12 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
     convolution_process(vec_pixel, 5); //6th filter
     convolution_process(vec_pixel, 6); //7th filter
     convolution_process(vec_pixel, 7); //8th filter
-    //fprintf(stderr,"Hey");
+
     Hidden(vec_pixel); //hiding the last input
-    //fprintf(stderr,"How are you ");
 }
 
 void Convolution_layer::convolution_process(const std::vector<double>& pixel, int idx) {
+    //AM: There is no push_back anymore :D
     //std::vector<double> vec;
     int count = 0;
     for (int ii = 0; ii < ConvMat_height; ii++) { //loop on the height of the convolution matrix
@@ -101,11 +106,9 @@ void Convolution_layer::convolution_process(const std::vector<double>& pixel, in
                     double image = (pixel[((ii + kk) * (ConvMat_width + 2) + (jj + hh))]); //pixel value of the image stored in image
 
                     sum += (image * filter_matrix[idx][kk * filter_width + hh]); //sum of the pixel value * filter value
-                }
-
-                
+                }                
             }
-            //vec.push_back(sum); //storing sum value in vec	AM	
+            //vec.push_back(sum); //storing sum value in vec	AM
             ConvMat[idx][count] = sum;
             count++;
         }
@@ -117,6 +120,8 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
 {
     //d_L_d_out is the loss gradient for this layer's outputs
     //filters with same shape as filter_matrix
+
+    //AM: Initializing with 0 values at declaration
     std::vector<std::vector<double>> filters (filter_number, std::vector<double> (filter_height * filter_width, 0.0));
     /*for (size_t i = 0; i < filter_number; i++) {
         std::vector<double> v;
@@ -129,6 +134,8 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
 
     //For keeping 3x3 reegions of last input
     //std::vector<std::vector<double>> regions (ConvMat_height*ConvMat_width, std::vector<double> (filter_height*filter_width));
+
+    // AM: Removing push_back in the rest of the function
 
     //Loop for storing 3x3 regions into "regions"
     int idx1, idx2;
@@ -176,7 +183,10 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
         }
     }
 }
+
 void Convolution_layer::random_weights(double nb_filters, double nb_weights, std::vector<std::vector<double>>& filter_matrix) {
+
+    //AM: Removing the push_back from this function
 
     //construct a random generator engine from a time-based seed, Ref1
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); //time; system real time

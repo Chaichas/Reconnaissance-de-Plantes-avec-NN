@@ -12,6 +12,7 @@ Hidden for implementing the backward phase, crucial for caching:
 
 void Pooling_layer::Hidden(const std::vector<std::vector<double>>& vect) { //caching
 
+	// AM: The hidden matrix can be sized only once, then we do only the assign
     //HiddenMat_input.clear(); //Clear the old HiddenMat_input
     //HiddenMat_input.resize(vect.size()); //Resize HiddenMat_input
 
@@ -30,7 +31,8 @@ void Pooling_layer::Pooling_parameters(const std::vector<std::vector<double>>& v
     Pooling_width = input_width / Pooling_size; //Width of the output pooling matrix
 
     //Pooling_Matrix.clear(); //clear the last matrix
-	if (initialization) {
+	if (initialization) { // AM: new added test
+		// AM: Resizing vectors only at initialization
 		Pooling_Matrix.resize(Filter_number, std::vector<double> (Pooling_height*Pooling_width));
 		HiddenMat_input.resize(vec_convolution.size());
 		initialization = false;
@@ -53,6 +55,8 @@ void Pooling_layer::Pooling_parameters(const std::vector<std::vector<double>>& v
 
 //Pooling Process
 void Pooling_layer::Pooling_process(const std::vector<std::vector<double>>& pixel, int idx) {
+
+	//AM: There is no push_back anymore :D
 
     std::vector<double> vec(Filter_height*Filter_width); //vector vec
 	int count2;
@@ -90,6 +94,7 @@ void Pooling_layer::Pooling_process(const std::vector<std::vector<double>>& pixe
 std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std::vector<double>> dloss_dlayer_output) { //Backpropagation algorithm for Pooling layer
 
 	//std::vector<std::vector<double>> represents a 2D matrix
+	//AM: Initializing with 0 values at declaration
 	std::vector<std::vector<double>> dloss_dx(Filter_number, std::vector<double>((Pooling_height * Pooling_size) * (Pooling_width * Pooling_size), 0.0)); //x represents the inputs
 
 	/*for (size_t ii = 0; ii < Filter_number; ii++) {
@@ -101,6 +106,8 @@ std::vector<std::vector<double>> Pooling_layer::BackPropagation(std::vector<std:
 		dloss_dx.push_back(vec); //storing vec elements in dloss_dx
 
 	}*/
+
+	// AM: Removing push_back in the rest of the function
 
 	for (int idx = 0; idx < Filter_number; idx++) {
 

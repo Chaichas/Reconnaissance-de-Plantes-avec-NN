@@ -10,6 +10,7 @@ class Data
 private:
 	
 	void create_canal(Mat* image);
+	//AM: Added bool variable for initial resizing of vectors
 	bool initialization = true;
 
 public:
