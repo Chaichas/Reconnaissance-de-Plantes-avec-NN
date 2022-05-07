@@ -66,6 +66,7 @@ void Convolution_layer::convolution_parameters(const std::vector<double>& vec_pi
             }
         }
         initialization = false;
+        regionsBack.resize(ConvMat_height*ConvMat_width, std::vector<double> (filter_height*filter_width));
 	}
     //fprintf(stderr,"Hello");
 
@@ -127,7 +128,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
     }*/
 
     //For keeping 3x3 reegions of last input
-    std::vector<std::vector<double>> regions (ConvMat_height*ConvMat_width, std::vector<double> (filter_height*filter_width));
+    //std::vector<std::vector<double>> regions (ConvMat_height*ConvMat_width, std::vector<double> (filter_height*filter_width));
 
     //Loop for storing 3x3 regions into "regions"
     int idx1, idx2;
@@ -141,7 +142,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
             for (int k = 0; k < filter_height; k++) {
                 for (int n = 0; n < filter_width; n++) {
                     //v.push_back(HiddenMat[((i + k) * (ConvMat_width + 2) + (j + n))]); 
-                    regions[idx1][idx2] = HiddenMat[((i + k) * (ConvMat_width + 2) + (j + n))];
+                    regionsBack[idx1][idx2] = HiddenMat[((i + k) * (ConvMat_width + 2) + (j + n))];
                     idx2++;
                 }
             }
@@ -159,7 +160,7 @@ void Convolution_layer::BackPropagation(std::vector<std::vector<double>> d_L_d_o
             for (size_t k = 0; k < filter_number; k++) {
                 for (size_t m = 0; m < 3; m++) {
                     for (size_t n = 0; n < 3; n++) {
-                        filters[k][m * 3 + n] += ((d_L_d_out[k][i * ConvMat_width + j] * regions[counter][m * 3 + n]));
+                        filters[k][m * 3 + n] += ((d_L_d_out[k][i * ConvMat_width + j] * regionsBack[counter][m * 3 + n]));
                     }
                 }
             }

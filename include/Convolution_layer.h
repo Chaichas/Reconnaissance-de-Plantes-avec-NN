@@ -54,6 +54,8 @@ private:
 
 	bool initialization = true; //initializing filters with random values 
 
+	std::vector<std::vector<double>> regionsBack;
+
 public:
 
 	//Case of Concolution layer propagation

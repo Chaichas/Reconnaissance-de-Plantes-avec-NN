@@ -4,8 +4,12 @@
 
 void Softmax_layer::Flatten(const std::vector<std::vector<double>>& img_input, int d)
 {
+    int idx = 0;
     for (int i = 0; i < d; i++) {
-        mFlatten.insert(mFlatten.end(), img_input[i].begin(), img_input[i].end());
+        for (int jj = 0; jj < img_input[i].size(); jj++) {
+            mFlatten[idx] = img_input[i][jj];
+            idx++;
+        }
     }
 
 }
@@ -13,10 +17,10 @@ void Softmax_layer::Flatten(const std::vector<std::vector<double>>& img_input, i
 void Softmax_layer::Hidden()
 {
     //Effacer le dernier cache et redimensionner
-    mCachedFlatten.clear();
-    mCachedTotal.clear();
-    mCachedFlatten.resize(mFlatten.size());
-    mCachedTotal.resize(mTotal.size());
+    //mCachedFlatten.clear();
+    //mCachedTotal.clear();
+    //mCachedFlatten.resize(mFlatten.size());
+    //mCachedTotal.resize(mTotal.size());
 
     //Copier la derniére entrée et les paramétres
     mCachedLength = mLength;
@@ -50,10 +54,14 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
         }
 
         pred = false;
+        mFlatten.resize(DEPTH*img_height*img_width);
+        mCachedFlatten.resize(mFlatten.size());
+        mTotal.resize(ND);
+        mCachedTotal.resize(mTotal.size());
     }
 
-    mFlatten.clear();//Effacer le dernier aplatissement de l'entrée
-    mTotal.clear();//Effacer la derniere prédiction 
+    //mFlatten.clear();//Effacer le dernier aplatissement de l'entrée
+    //mTotal.clear();//Effacer la derniere prédiction 
 
 
     Flatten(img_input, DEPTH);
@@ -68,11 +76,12 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
         }
         //Somme de biais
         s = s + mBiases[i];
-        mTotal.push_back(s);
+        //mTotal.push_back(s);
+        mTotal[i] = s;
         i++;
     }
-    std::vector<double>  vectExponentiel;
-    std::vector<double>  vectPredictions;
+    std::vector<double>  vectExponentiel (ND);
+    std::vector<double>  vectPredictions (ND);
 
     double  sumExp = 0.0;
     double t = 0.0;
@@ -80,7 +89,8 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
     while( i < ND)
     {
         t = exp(mTotal[i]);
-        vectExponentiel.push_back(t);
+        //vectExponentiel.push_back(t);
+        vectExponentiel[i] = t;
         sumExp = sumExp + t;
         i++;
     }
@@ -88,7 +98,8 @@ std::vector<double> Softmax_layer::Softmax_start(const std::vector<std::vector<d
     while (j < ND)
     {
         t = ((double)vectExponentiel[j] / (double)sumExp);
-        vectPredictions.push_back(t);
+        //vectPredictions.push_back(t);
+        vectPredictions[j] = t;
         j++;
     }
 
@@ -113,19 +124,21 @@ std::vector<std::vector<double>> Softmax_layer::BackPropagation(const std::vecto
             continue;
 
         //Compter les exp^totals et Somme de tous les exp^totals
-        std::vector<double> t_exp;
+        std::vector<double> t_exp (ND);
         double sum = 0.0;
         double temp = 0.0;
         for (int i = 0; i < ND; i++) {
             temp = exp(mCachedTotal[i]);
-            t_exp.push_back(temp);
+            //t_exp.push_back(temp);
+            t_exp[i] = temp;
             sum += (temp);
         }
 
         // Gradients des total par rapport aux total
-        std::vector<double> dOutdt;
+        std::vector<double> dOutdt(ND);
         for (int j = 0; j < ND; j++) {
-            dOutdt.push_back((-t_exp[i]) * t_exp[j] / (double)(pow(sum, 2)));
+            //dOutdt.push_back((-t_exp[i]) * t_exp[j] / (double)(pow(sum, 2)));
+            dOutdt[j] = (-t_exp[i]) * t_exp[j] / (double)(pow(sum, 2));
         }
 
         dOutdt[i] = t_exp[i] * (sum - t_exp[i]) / (double)(pow(sum, 2));
@@ -138,35 +151,39 @@ std::vector<std::vector<double>> Softmax_layer::BackPropagation(const std::vecto
         std::vector<std::vector<double>> dtdinputs = mWeights;
 
         // Gradients de perte par rapport aux total
-        std::vector<double> dLossdt;
+        std::vector<double> dLossdt(ND);
         for (size_t j = 0; j < ND; j++) {
-            dLossdt.push_back(dLossdOut[i] * dOutdt[j]);
+            //dLossdt.push_back(dLossdOut[i] * dOutdt[j]);
+            dLossdt[j] = dLossdOut[i] * dOutdt[j];
         }
 
-        std::vector<double> dlossdinputs;
+        std::vector<double> dlossdinputs (mCachedLength);
         for (int i = 0; i < mCachedLength; i++) {
             double sum = 0.0;
             for (int j = 0; j < ND; j++) {
                 sum = sum + (dtdinputs[i][j] * dLossdt[j]);
             }
-            dlossdinputs.push_back(sum);
+            //dlossdinputs.push_back(sum);
+            dlossdinputs[i] = sum;
         }
         // Gradients de perte par rapport aux biais
-        std::vector<double> dLossdb;
+        std::vector<double> dLossdb (ND);
         for (int j = 0; j < ND; j++) {
-            dLossdb.push_back(dLossdt[j] * dtdb);
+            //dLossdb.push_back(dLossdt[j] * dtdb);
+            dLossdb[j] = dLossdt[j] * dtdb;
         }
 
         // Gradients de perte par rapport aux poids
-        std::vector<std::vector<double>> dLossdw;
+        std::vector<std::vector<double>> dLossdw (mCachedLength, std::vector<double> (ND));
         for (int k = 0; k < mCachedLength; k++) {
-            std::vector<double> vectsum;
             for (int j = 0; j < ND; j++) {
                 double sum = 0;
                 sum = sum + (dtdw[k] * dLossdt[j]);
-                vectsum.push_back(sum);
+                //vectsum.push_back(sum);
+                dLossdw[k][j] = sum;
             }
-            dLossdw.push_back(vectsum);
+            //dLossdw.push_back(vectsum);
+
         }
 
        
