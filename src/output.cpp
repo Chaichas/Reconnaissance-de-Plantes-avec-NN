@@ -114,7 +114,8 @@ std::vector<double> output::prediction(int c, int& hauteur, int& largeur)
     //fprintf(stderr,"global_size %d m_convol->HiddenMat.size() %d counts[0] %d displ[0] %d\n",global_size, m_convol->HiddenMat.size(),counts[0],displ[0]);
     global_vec.clear();
 	global_vec.resize(global_size);
-	MPI_Allgatherv(&m_convol->HiddenMat[0], m_convol->HiddenMat.size(), MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD);
+	//MPI_Allgatherv(&m_convol->HiddenMat[0], m_convol->HiddenMat.size(), MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD);
+    MPI_Allgatherv(&m_convol->HiddenMat[0], counts[rank], MPI_DOUBLE, &global_vec[0], counts, displ, MPI_DOUBLE, MPI_COMM_WORLD);
     //fprintf(stderr,"second Allgatherv okay \n");
 	MPI_Barrier(MPI_COMM_WORLD);
     m_convol->HiddenMat.clear();
