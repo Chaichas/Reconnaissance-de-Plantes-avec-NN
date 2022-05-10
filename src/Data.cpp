@@ -108,12 +108,13 @@ void Data::loadImage(const std::string& str_Path, int& hauteur, int& largeur)
         B = (double)local_buffer[i+2];
         somme = (R + V + B);
         //normalisation des valeurs de pixels dans la plage [-0.5, 0.5] pour ne pas ralentir le processus d'apprentissage
-        somme = (somme *(1/ 765)) - 0.5;
+        somme = (somme / 765) - 0.5;
         m_ImageVector.push_back(somme);
     }
 
     delete image;
 }
+
 
 /*
 //AM: Not needed anymore as it is done in a parallel way
